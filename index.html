@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexdbDB - IORM</title>
+</head>
+
+<body>
+    <script type="module">
+        import { InteagerField, StringField, BaseModel } from './dist/index.js'
+        class User extends BaseModel {
+            age = InteagerField()
+            name = StringField()
+        }
+        let u = User.generate(new User())
+        u.age = 100
+        u.name = 'test'
+        console.log(u.save())
+        u.print()
+        console.log(u.age)
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "baseUrl": "src",
+        "allowJs": true,
+        "target": "ES6", // 目标语言的版本
+        "module": "es2015", // 指定生成代码的模板标准
+        "noImplicitAny": false, // 允许隐式的 any 类型
+        "removeComments": true, // 删除注释 
+        "preserveConstEnums": true, // 保留 const 和 enum 声明
+        "sourceMap": true, // 生成目标文件的sourceMap文件
+        "rootDir": "./src",
+        "outDir": "./dist" // 生成目标文件的目录
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts",
+        "dist",
+        "build"
+    ],
+    "files": [ // 指定待编译文件
+        "./src/index.ts"
+    ]
+}
