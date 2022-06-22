@@ -4,8 +4,10 @@ import { FieldProperty, FieldGenerate } from "src/types/func"
 class Inteager extends Field {
     private readonly js_type: string = 'number'
     private readonly type: string = 'inteager'
+    value: string
     constructor(property: FieldProperty) {
         super(property)
+        this.value = property?.default || 0
     }
 }
 

@@ -12,8 +12,19 @@ class BaseModel {
         return data
     }
 
-    print() {
-        console.log(this)
+    static new() {
+        return new Proxy(new this, {
+            get: function (target, prop) {
+                // if (target[prop].hasOwnProperty('iorm_type') && target[prop].iorm_type === 'field') {
+                //     return target[prop].value
+                // }
+                return target[prop]
+            },
+            set: function (target, prop, value) {
+                target[prop].value = value;
+                return true
+            }
+        })
     }
 
     static generate(obj) {

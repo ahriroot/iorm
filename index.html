@@ -12,15 +12,13 @@
     <script type="module">
         import { InteagerField, StringField, BaseModel } from './dist/index.js'
         class User extends BaseModel {
-            age = InteagerField()
+            age = InteagerField({ default: 0 })
             name = StringField()
         }
-        let u = User.generate(new User())
-        u.age = 100
-        u.name = 'test'
-        console.log(u.save())
-        u.print()
-        console.log(u.age)
+        let user = User.new()
+        console.log(user.age.value)
+        user.age = 10
+        console.log(user.age.value)
     </script>
 </body>
 
