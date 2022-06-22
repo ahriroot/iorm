@@ -12,6 +12,17 @@ class BaseModel {
         return data
     }
 
+    get(name: string) {
+        let value;
+        Object.getOwnPropertyNames(this).forEach(key => {
+            console.log(key == name)
+            if (key == name) {
+                value = this[key].value
+            }
+        })
+        return value
+    }
+
     static new() {
         return new Proxy(new this, {
             get: function (target, prop) {
