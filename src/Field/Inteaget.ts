@@ -1,5 +1,6 @@
+import { FieldGenerate, FieldProperty } from "../../types/index"
 import Field from "../base/field.js"
-import { FieldProperty, FieldGenerate } from "src/types/func"
+
 
 class Inteager extends Field {
     private readonly js_type: string = 'number'

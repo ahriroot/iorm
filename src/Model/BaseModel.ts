@@ -1,8 +1,10 @@
 class BaseModel {
+    db: string = ''
     constructor() {
     }
 
     save() {
+        console.log(`iorm: ${this.db}`)
         let data = {}
         Object.getOwnPropertyNames(this).forEach(key => {
             if (this[key].hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
@@ -12,18 +14,31 @@ class BaseModel {
         return data
     }
 
+    /**
+     * Get property value
+     * @param name The name of the field
+     * @returns value of the field
+     */
     get(name: string) {
-        let value;
+        let value = undefined;
         Object.getOwnPropertyNames(this).forEach(key => {
             console.log(key == name)
             if (key == name) {
                 value = this[key].value
             }
         })
+        // value 不允许为 undefined
+        // if(value === undefined) {
+        //     throw new Error(`IORM: ${name} is not defined`)
+        // }
         return value
     }
 
-    static new() {
+    /**
+     * Init model
+     * @returns Object proxy of the model
+     */
+    static init() {
         return new Proxy(new this, {
             get: function (target, prop) {
                 // if (target[prop].hasOwnProperty('iorm_type') && target[prop].iorm_type === 'field') {

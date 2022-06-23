@@ -1,9 +1,10 @@
-import { FieldProperty } from "src/types/func"
+import { FieldProperty, IField } from "../../types/index"
+
 
 /**
- * Field
+ * Field class
  */
-class Field {
+class Field implements IField {
     private readonly iorm_type: string = 'field'
     verbose_name: string
     nullable: boolean

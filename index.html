@@ -10,19 +10,27 @@
 
 <body>
     <script type="module">
-        import { InteagerField, StringField, BaseModel } from './dist/index.js'
-        class User extends BaseModel {
+        import { InteagerField, StringField, BooleanField, BaseModel } from './dist/index.js'
+        class DB extends BaseModel {
+            db = 'dbname'
+        }
+        class User extends DB {
             age = InteagerField({ default: 18 })
             name = StringField({ default: 'zhangsan' })
+            activate = BooleanField({ default: false })
         }
-        let user = User.new()
-        console.log(user.name.value)
-        console.log(user.age.value)
-        user.name = 'lisi'
-        user.age = 20
-        console.log(user.name.value)
-        console.log(user.age.value)
-        console.log(user.get('age'))
+        let user = User.init()
+        // console.log(user.name.value)
+        // console.log(user.age.value)
+        // console.log(user.activate.value)
+        // user.name = 'lisi'
+        // user.age = 20
+        // user.activate = true
+        // console.log(user.name.value)
+        // console.log(user.age.value)
+        // console.log(user.activate.value)
+        // console.log(user.get('age'))
+        user.save()
     </script>
 </body>
 
