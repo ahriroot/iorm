@@ -1,4 +1,4 @@
-import { FieldGenerate, FieldProperty } from "../../types/index"
+import { IFieldGenerate, FieldProperty } from "../../types/index"
 import Field from "../base/field.js"
 
 
@@ -8,11 +8,14 @@ class String extends Field {
     value: string
     constructor(property: FieldProperty) {
         super(property)
-        this.value = property?.default || ''
+        if (typeof property?.default != 'string') {
+            throw new Error('StringField default value must be string')
+        }
+        this.value = property.default
     }
 }
 
-const StringField: FieldGenerate = (property: FieldProperty) => {
+const StringField: IFieldGenerate = (property: FieldProperty) => {
     return new Proxy(new String(property), {
         get: function (target, prop) {
             return target[prop]

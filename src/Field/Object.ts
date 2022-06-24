@@ -2,21 +2,21 @@ import { IFieldGenerate, FieldProperty } from "../../types/index"
 import Field from "../base/field.js"
 
 
-class Boolean extends Field {
-    private readonly js_type: string = 'boolean'
-    private readonly type: string = 'boolean'
+class Object extends Field {
+    private readonly js_type: string = 'object'
+    private readonly type: string = 'array'
     value: boolean
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default != 'boolean') {
-            throw new Error('BooleanField default value must be boolean')
+        if (typeof property?.default != 'object') {
+            throw new Error('ObjectField default value must be object')
         }
         this.value = property.default
     }
 }
 
-const BooleanField: IFieldGenerate = (property: FieldProperty) => {
-    let value = new Boolean(property)
+const ObjectField: IFieldGenerate = (property: FieldProperty) => {
+    let value = new Object(property)
     return new Proxy(value, {
         get: function (target, prop) {
             return target[prop]
@@ -28,4 +28,4 @@ const BooleanField: IFieldGenerate = (property: FieldProperty) => {
     })
 }
 
-export default BooleanField
+export default ObjectField
