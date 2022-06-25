@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IORM</title>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+
+        html {
+            font-family: sans-serif;
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        td,
+        th {
+            padding: 0;
+        }
+
+        .table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+            border: 1px solid #cbcbcb;
+        }
+
+        .table caption {
+            color: #000;
+            font: italic 85%/1 arial, sans-serif;
+            padding: 1em 0;
+            text-align: center;
+        }
+
+        .table td,
+        .table th {
+            border-left: 1px solid #cbcbcb;
+            border-width: 0 0 0 1px;
+            font-size: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: .5em 1em;
+        }
+
+        .table thead {
+            background-color: #e0e0e0;
+            color: #000;
+            text-align: left;
+            vertical-align: bottom;
+        }
+
+        .table td {
+            background-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>age</th>
+                    <th>activate</th>
+                    <th>hobbies</th>
+                    <th>删除</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(user, index) in users">
+                    <td>{{ user._id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.age }}</td>
+                    <td>{{ user.activate }}</td>
+                    <td>{{ user.hobbies }}</td>
+                    <td>
+                        <button @click="handleDeleteUser(user._id)">删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="module">
+        import { ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel } from '../dist/index.js'
+        class DB extends BaseModel {
+            constructor(store = null) {
+                super({
+                    db: {
+                        db_name: 'dbname',
+                        db_version: 1
+                    },
+                    store: store
+                })
+            }
+        }
+        class User extends DB {
+            constructor() {
+                super({ store_name: 'user_store' })
+            }
+            id = KeyPathField({ key_path_name: '_id', auto_increment: true })
+            age = InteagerField({ default: 3 })
+            name = StringField({ default: 'zhangsan', unique: false, index: 'name_index' })
+            activate = BooleanField({ default: false, unique: false, index: 'activate_index' })
+            hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
+        }
+
+        import { createApp, onMounted, ref } from './vue.esm-browser.prod.js'
+        const app = createApp({
+            setup() {
+                const users = ref([])
+                const handleDeleteUser = (_id) => {
+                    console.log(_id)
+                }
+                onMounted(async () => {
+                    users.value = await User.filter().all()
+                })
+                return {
+                    users,
+                    handleDeleteUser
+                }
+            }
+        })
+        app.mount("#app")
+    </script>
+</body>
+
+</html>

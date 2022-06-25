@@ -11,7 +11,6 @@ class Field implements IField {
     unique: boolean = false
     index: string | boolean = false
     constructor(property: FieldProperty) {
-        property.hasOwnProperty('verbose_name') && (this.verbose_name = property.verbose_name)
         if (property.hasOwnProperty('verbose_name') && typeof property.verbose_name == 'string') {
             this.verbose_name = property.verbose_name
         }

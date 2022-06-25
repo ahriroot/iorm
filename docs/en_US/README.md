@@ -80,11 +80,6 @@ query = query.limit(10)  // 查询 10 条数据
 
 console.log(query.all())
 ```
-    
-```javascript
-const query = User.find_one({username: 'admin'})
-console.log(user.get())
-```
 
 #### 修改数据
     

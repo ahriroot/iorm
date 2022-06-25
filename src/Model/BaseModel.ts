@@ -1,6 +1,6 @@
 import { DefaultKeyPath } from "../base/const.js"
 import { IBaseModel, IORMConfig } from "../../types/index"
-import KeyPathField from "../Field/KeyPath.js"
+import { QuerySet } from "./Query.js"
 
 /**
  * BaseModel
@@ -12,6 +12,9 @@ class BaseModel implements IBaseModel {
     protected store_name: string
     protected db: IDBDatabase | null = null
 
+    protected key_path: string = DefaultKeyPath  // default KeyPath
+    protected auto_increment: boolean = true  // default KeyPath
+
     constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: null } }) {
         this.store_name = this.toLowerLine(this.constructor.name)  // store name, default class name lowercase underscore
 
@@ -20,12 +23,6 @@ class BaseModel implements IBaseModel {
         if (config.store.store_name !== null) {
             this.store_name = config.store.store_name  // custome store name
         }
-
-        // this.__open().then((db: IDBDatabase) => {
-        //     this.db = db
-        // }).catch(err => {
-        //     throw new Error(err)
-        // })
         return new Proxy(this, {
             get: (target, prop) => {
                 // if (target[prop].hasOwnProperty('iorm_type') && target[prop].iorm_type === 'field') {
@@ -57,16 +54,15 @@ class BaseModel implements IBaseModel {
         return tmp
     }
 
-    __get_key_path() {
-        let key_path: string = DefaultKeyPath
+    get_key_path() {
         Object.getOwnPropertyNames(this).forEach(key => {
             if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
                 if (this[key].type === 'key_path') {
-                    key_path = key
+                    this.key_path = this[key].key_path_name
                 }
             }
         })
-        return key_path
+        return this.key_path
     }
 
     /**
@@ -80,22 +76,19 @@ class BaseModel implements IBaseModel {
             request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
                 let t = event.target as IDBRequest
                 let db = t.result
-                let key_path = DefaultKeyPath  // default KeyPath
                 let auto_increment = true  // default KeyPath auto_increment
                 let index_dict = []  // index list
 
+                let key_path_has_defined: number = 0
                 Object.getOwnPropertyNames(this).forEach(key => {
                     // create KeyPath
                     if (
-                        this[key]?.hasOwnProperty('iorm_type')
-                        && this[key].iorm_type === 'field'
-                        && this[key]?.hasOwnProperty('type')
-                        && this[key].type === 'key_path'
+                        this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field'
+                        && this[key]?.hasOwnProperty('type') && this[key].type === 'key_path'
                     ) {
-                        key_path = this[key].key_path_name
-                        auto_increment = this[key].auto_increment
-                    } else {
-                        this[key_path] = KeyPathField({ key_path_name: key_path, auto_increment: false })
+                        key_path_has_defined++
+                        this.key_path = this[key].key_path_name
+                        this.auto_increment = this[key].auto_increment
                     }
 
                     // save index into index_dict
@@ -109,11 +102,16 @@ class BaseModel implements IBaseModel {
                         }
                     }
                 })
+                if (key_path_has_defined == 0) {
+                    reject(new Error('KeyPath is not defined'))
+                } else if (key_path_has_defined > 1) {
+                    reject(new Error('KeyPath is defined more than one'))
+                }
 
                 // create store
                 let objStore = db.createObjectStore(this.store_name, {
-                    keyPath: key_path,
-                    autoIncrement: auto_increment
+                    keyPath: this.key_path,
+                    autoIncrement: this.auto_increment
                 })
 
                 // create index
@@ -137,6 +135,7 @@ class BaseModel implements IBaseModel {
 
     /**
      * Save data to database and return the primary id
+     * @param ret Return type
      * @returns Record primary id
      */
     async save(ret: 'id' | 'data' | 'object' = 'id') {
@@ -147,15 +146,16 @@ class BaseModel implements IBaseModel {
             let data = {}
             Object.getOwnPropertyNames(this).forEach(key => {
                 if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
-                    data[key] = this[key].value
+                    if (this[key].type === 'key_path') {
+                        data[this[key].key_path_name] = this[key].value
+                    } else {
+                        data[key] = this[key].value
+                    }
                 }
             })
-            let key_path = this.__get_key_path()
-            console.log(key_path, this[key_path])
-            if (data[key_path] === undefined || data[key_path] === null || data[key_path] === '') {
-                delete data[key_path]
+            if (data[this.key_path] === undefined || data[this.key_path] === null || data[this.key_path] === '') {
+                delete data[this.key_path]
             }
-            console.log(data)
 
             let request = this.db.transaction([this.store_name], 'readwrite')
                 .objectStore(this.store_name)
@@ -163,7 +163,7 @@ class BaseModel implements IBaseModel {
 
             request.onsuccess = (event) => {
                 let t = event.target as IDBRequest
-                this[this.__get_key_path()] = t.result
+                this[this.get_key_path()] = t.result
                 switch (ret) {
                     case 'id':
                         resolve(t.result)
@@ -179,95 +179,88 @@ class BaseModel implements IBaseModel {
                         break
                 }
             }
-
-            request.onerror = (event) => {
-                reject(event)
-            }
-        })
-    }
-
-    static async find(filter: any = {}, options: any = { ret: 'data' }) {
-        let obj = new this()
-        return new Promise(async (resolve, reject) => {
-            if (obj.db === null || obj.db === undefined) {
-                obj.db = await obj.__open() as IDBDatabase
-            }
-            let objectStore = obj.db.transaction([obj.store_name], 'readonly').objectStore(obj.store_name)
-            let request = objectStore.openCursor()
-            let data: any = []
-            request.onsuccess = (event) => {
+            request.onerror = (event: Event) => {
                 let t = event.target as IDBRequest
-                let cursor = t.result
-                if (cursor) {
-                    switch (options.ret) {
-                        case 'data':
-                            data.push(cursor.value)
-                            break
-                        case 'object':
-                            let obj_data = new this()
-                            Object.getOwnPropertyNames(obj_data).forEach(key => {
-                                if (obj_data[key]?.hasOwnProperty('iorm_type') && obj_data[key].iorm_type === 'field') {
-                                    obj_data[key] = cursor.value[key]
-                                }
-                            })
-                            data.push(obj_data)
-                            break
-                        default:
-                            data.push(cursor.value)
-                            break
-                    }
-                    cursor.continue()
-                } else {
-                    resolve(data)
-                }
-            }
-
-            request.onerror = (event) => {
-                reject(event)
+                reject(t.error)
             }
         })
     }
 
     /**
-     * Get one data by primary id
-     * @param id primary id
+     * Save data to database and return the primary id
+     * @param ret Return type
+     * @returns Record primary id
      */
-    async find(filter: any = {}, options: any = { ret: 'data' }) {
+    async insert(ret: 'id' | 'data' | 'object' = 'id') {
         return new Promise(async (resolve, reject) => {
             if (this.db === null || this.db === undefined) {
                 this.db = await this.__open() as IDBDatabase
             }
-            let objectStore = this.db.transaction([this.store_name], 'readonly').objectStore(this.store_name)
-            let request = objectStore.openCursor()
-            let data: any = []
-            request.onsuccess = (event) => {
-                let t = event.target as IDBRequest
-                let cursor = t.result
-                if (cursor) {
-                    switch (options.ret) {
-                        case 'data':
-                            data.push(cursor.value)
-                            break
-                        case 'object':
-                            data.push(new (this.constructor as any)(cursor.value))
-                            break
-                        default:
-                            data.push(cursor.value)
-                            break
+            let data = {}
+            Object.getOwnPropertyNames(this).forEach(key => {
+                if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
+                    if (this[key].type === 'key_path') {
+                        this.key_path = this[key].key_path_name
+                        data[this.key_path] = this[key].value
+                    } else {
+                        data[key] = this[key].value
                     }
-                    cursor.continue()
-                } else {
-                    resolve(data)
                 }
+            })
+            if (data[this.key_path] === undefined || data[this.key_path] === null || data[this.key_path] === '') {
+                delete data[this.key_path]
             }
 
-            request.onerror = (event) => {
-                reject(event)
+            let request = this.db.transaction([this.store_name], 'readwrite')
+                .objectStore(this.store_name)
+                .add(data)
+
+            request.onsuccess = (event) => {
+                let t = event.target as IDBRequest
+                this[this.key_path] = t.result
+                switch (ret) {
+                    case 'id':
+                        resolve(t.result)
+                        break
+                    case 'data':
+                        resolve(data)
+                        break
+                    case 'object':
+                        resolve(this)
+                        break
+                    default:
+                        resolve(t.result)
+                        break
+                }
+            }
+            request.onerror = (event: Event) => {
+                let t = event.target as IDBRequest
+                reject(t.error)
             }
         })
     }
 
-    find_many = this.find
+    static async insert(data: any, ret: 'id' | 'data' | 'object' = 'id') {
+        let object = new this()
+        Object.getOwnPropertyNames(object).forEach(key => {
+            if (object[key]?.hasOwnProperty('iorm_type') && object[key].iorm_type === 'field') {
+                object[key] = data[key]
+            }
+        })
+        return object.insert(ret)
+    }
+
+    static find() {
+        let query = new QuerySet(new this())
+        return query
+    }
+
+    static find_many = BaseModel.find
+
+    static filter(filter: object = {}) {
+        let query = new QuerySet(new this())
+        return query.filter(filter)
+    }
 
     /**
      * Get property value
@@ -277,7 +270,6 @@ class BaseModel implements IBaseModel {
     get(name: string) {
         let value = undefined
         Object.getOwnPropertyNames(this).forEach(key => {
-            console.log(key == name)
             if (key == name) {
                 value = this[key].value
             }
