@@ -83,24 +83,28 @@ console.log(query.all())
     
 ```javascript
 const query = User.find_one({username: 'admin'})
-console.log(user.get())
+console.log(query.get())
 ```
 
 #### 修改数据
     
 ```javascript
-const query = User.find().filter({ username: 'admin', activate: true }).get() // get: 获取一条数据
-if (query) {
+const user = User.find().filter({ username: 'admin', activate: true }).obj() // obj|object: 获取一条数据实例
+if (user) {
     query.username = 'admin2'
     query.save()
 }
+
+const users = User.find().filter({ username: 'admin', activate: true }).objs() // objs|objects: 获取多条数据实例
+users.forEach(user => {
+    user.username = 'admin2'
+    user.save()
+})
 ```
 
 #### 删除数据
     
 ```javascript
-const query = User.find().filter({ username: 'admin', activate: true }).get() // get: 获取一条数据
-if (query) {
-    query.delete()
-}
+const res = User.find().filter({ username: 'admin', activate: true }).delete()
+console.log(res)  // 返回被删除的数据
 ```
