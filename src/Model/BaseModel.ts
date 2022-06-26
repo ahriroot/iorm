@@ -54,7 +54,7 @@ class BaseModel implements IBaseModel {
         return tmp
     }
 
-    get_key_path() {
+    key_path_name() {
         Object.getOwnPropertyNames(this).forEach(key => {
             if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
                 if (this[key].type === 'key_path') {
@@ -63,6 +63,18 @@ class BaseModel implements IBaseModel {
             }
         })
         return this.key_path
+    }
+
+    get_key_path_field() {
+        let key_path_field = null
+        Object.getOwnPropertyNames(this).forEach(key => {
+            if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
+                if (this[key].type === 'key_path') {
+                    key_path_field = key
+                }
+            }
+        })
+        return key_path_field
     }
 
     /**
@@ -116,7 +128,7 @@ class BaseModel implements IBaseModel {
 
                 // create index
                 index_dict.forEach(index => {
-                    objStore.createIndex(index.index_name, index.field_name, index.options)
+                    objStore.createIndex(index.field_name, index.index_name, index.options)
                 })
                 objStore.transaction.oncomplete = (_: any) => {
                     resolve(db)
@@ -153,17 +165,21 @@ class BaseModel implements IBaseModel {
                     }
                 }
             })
+            let request
             if (data[this.key_path] === undefined || data[this.key_path] === null || data[this.key_path] === '') {
                 delete data[this.key_path]
+                request = this.db.transaction([this.store_name], 'readwrite')
+                    .objectStore(this.store_name)
+                    .add(data)
+            } else {
+                request = this.db.transaction([this.store_name], 'readwrite')
+                    .objectStore(this.store_name)
+                    .put(data)
             }
-
-            let request = this.db.transaction([this.store_name], 'readwrite')
-                .objectStore(this.store_name)
-                .add(data)
 
             request.onsuccess = (event) => {
                 let t = event.target as IDBRequest
-                this[this.get_key_path()] = t.result
+                this[this.key_path_name()] = t.result
                 switch (ret) {
                     case 'id':
                         resolve(t.result)
