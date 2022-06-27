@@ -1,5 +1,5 @@
 import { DefaultKeyPath } from "../base/const.js"
-import { IBaseModel, IORMConfig } from "../../types/index"
+import { IBaseModel, IORMConfig, IORMConfigSetting } from "../../types/index"
 import { QuerySet } from "./Query.js"
 
 /**
@@ -12,10 +12,14 @@ class BaseModel implements IBaseModel {
     protected store_name: string
     protected db: IDBDatabase | null = null
 
+    protected setting: IORMConfigSetting = {
+        default_type: 'data'
+    }
+
     protected key_path: string = DefaultKeyPath  // default KeyPath
     protected auto_increment: boolean = true  // default KeyPath
 
-    constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: null } }) {
+    constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: null }, setting: { default_type: 'data' } }) {
         this.store_name = this.toLowerLine(this.constructor.name)  // store name, default class name lowercase underscore
 
         this.db_name = config.db.db_name  // database name
@@ -23,6 +27,7 @@ class BaseModel implements IBaseModel {
         if (config.store.store_name !== null) {
             this.store_name = config.store.store_name  // custome store name
         }
+        this.setting = config.setting  // setting
         return new Proxy(this, {
             get: (target, prop) => {
                 // if (target[prop].hasOwnProperty('iorm_type') && target[prop].iorm_type === 'field') {
@@ -270,12 +275,16 @@ class BaseModel implements IBaseModel {
         let query = new QuerySet(new this())
         return query
     }
-
     static find_many = BaseModel.find
 
-    static filter(filter: object = {}) {
+    static where(filter: object = {}) {
         let query = new QuerySet(new this())
-        return query.filter(filter)
+        return query.where(filter)
+    }
+
+    static all() {
+        let query = new QuerySet(new this())
+        return query.all()
     }
 
     /**

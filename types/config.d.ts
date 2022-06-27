@@ -1,15 +1,20 @@
 // types/config.d.ts
 
-export interface IORMConfig {
-    db: {
-        db_name: string
-        db_version: number | null
-    }
-    store: {
-        store_name: string | null
-    }
+export interface IORMConfigDatabase {
+    db_name: string
+    db_version: number | null
 }
 
-export interface IORMMetadata {
-    store_name: string
+export interface IORMConfigStore {
+    store_name: string | null
+}
+
+export interface IORMConfigSetting {
+    default_type: 'data' | 'object' | 'key'
+}
+
+export interface IORMConfig {
+    db: IORMConfigDatabase
+    store?: IORMConfigStore
+    setting?: IORMConfigSetting
 }

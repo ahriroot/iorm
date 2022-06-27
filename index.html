@@ -12,58 +12,6 @@
     <div>
         <a href="./example/index.html">实例</a>
     </div>
-    <div id="app"></div>
-    <script type="module">
-        const show = (data) => {
-            document.querySelector('#app').innerHTML = `<pre>${JSON.stringify(data, null, 4)}</pre>`
-        }
-        import { ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel } from './dist/index.js'
-        class DB extends BaseModel {
-            constructor(store = null) {
-                super({
-                    db: {
-                        db_name: 'dbname',
-                        db_version: 1
-                    },
-                    store: store
-                })
-            }
-        }
-        class User extends DB {
-            constructor() {
-                super({ store_name: 'user_store' })
-            }
-            id = KeyPathField({ key_path_name: '_id', auto_increment: true })
-            age = InteagerField({ default: 3 })
-            name = StringField({ default: 'zhangsan', unique: false, index: 'name_index' })
-            activate = BooleanField({ default: false, unique: false, index: 'activate_index' })
-            hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
-        }
-        // let user = new User()
-        // user.id = 1
-        // await user.insert()
-        // console.log(user)
-        // console.log(user.name.value)
-        // console.log(user.age.value)
-        // console.log(user.activate.value)
-        // user.name = 'lisi'
-        // user.age = 20
-        // user.activate = true
-        // console.log(user.name.value)
-        // console.log(user.age.value)
-        // console.log(user.activate.value)
-        // console.log(user.get('age'))
-        // let res = await user.save()
-        // console.log(res)
-        // await User.insert({ age: 18, name: 'lisi', activate: true, hobbies: ['football', 'basketball'] })
-        let res = await User.filter()
-        let data = await res.all()
-        console.log(data)
-        show(data)
-        // res.forEach(item => {
-        //     console.log(item)
-        // })
-    </script>
 </body>
 
 </html>

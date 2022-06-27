@@ -94,7 +94,16 @@
                         <input v-show="edit == user.id" type="text" v-model="swap.age" />
                         <span v-show="edit != user.id">{{ user.age }}</span>
                     </td>
-                    <td>{{ user.activate }}</td>
+                    <td>
+                        <label>
+                            <input v-show="edit == user.id" type="checkbox" v-model="swap.activate" />
+                            <span v-show="edit == user.id">{{ swap.activate }}</span>
+                        </label>
+                        <label>
+                            <input v-show="edit != user.id" type="checkbox" disabled v-model="user.activate" />
+                            <span v-show="edit != user.id">{{ user.activate }}</span>
+                        </label>
+                    </td>
                     <td>{{ user.hobbies }}</td>
                     <td>
                         <button v-show="edit == user.id" @click="handleSubmit">提交</button>
@@ -117,7 +126,7 @@
         </table>
     </div>
     <script type="module">
-        import { ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel } from '../dist/index.js'
+        import { ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel } from '../index.js'
         class DB extends BaseModel {
             constructor(store = null) {
                 super({
@@ -154,28 +163,29 @@
                     hobbies: 'football,basketball'
                 })
                 const handleDeleteUser = async (id) => {
-                    let res = await User.filter({ id: id }).delete()
+                    let res = await User.where({ id: id }).delete()
                     console.log('Deleted:', res)
-                    users.value = await User.filter().all()
+                    await getAllUsers()
                 }
                 const handleEdit = (user) => {
                     swap.value = { ...user }
                     edit.value = user.id
                 }
                 const handleSubmit = async () => {
-                    let res = await User.filter({ id: edit.value }).object()
+                    let res = await User.where({ id: edit.value }).object()
                     if (res) {
                         res.name = swap.value.name
                         res.age = swap.value.age
                         res.activate = swap.value.activate
                         res.hobbies = [...swap.value.hobbies]
                         await res.save()
-                        users.value = await User.filter().all()
+                        await getAllUsers()
                         edit.value = -1
                     }
                 }
                 const getAllUsers = async () => {
-                    users.value = await User.filter().all()
+                    users.value = await User.all()
+                    console.log('users:', users.value)
                 }
                 const handleNewUser = async () => {
                     if (new_user.value.name == '') {

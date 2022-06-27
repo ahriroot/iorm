@@ -1,7 +1,7 @@
 
 export class QuerySet {
     private readonly object_model: any
-    private filterOptions: any = {}
+    private whereOptions: any = {}
     private excludeOptions: any = {}
     private skip_count: number = -1
     private limit_count: number = -1
@@ -21,8 +21,8 @@ export class QuerySet {
         })
     }
 
-    filter(filter: object) {
-        this.filterOptions = filter
+    where(where: object) {
+        this.whereOptions = where
         return this
     }
 
@@ -47,7 +47,7 @@ export class QuerySet {
         return this
     }
 
-    async all() {
+    async __all(ret_type: string = 'data') {
         return new Promise(async (resolve, reject) => {
             if (this.object_model.db === null || this.object_model.db === undefined) {
                 this.object_model.db = await this.object_model.__open() as IDBDatabase
@@ -62,13 +62,13 @@ export class QuerySet {
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    for (let k in this.filterOptions) {
+                    for (let k in this.whereOptions) {
                         if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.filterOptions[k]) {
+                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         } else {
-                            if (cursor.value[k] != this.filterOptions[k]) {
+                            if (cursor.value[k] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         }
@@ -79,7 +79,6 @@ export class QuerySet {
                                 push_flag = false
                             }
                         } else {
-
                             if (cursor.value[k] == this.excludeOptions[k]) {
                                 push_flag = false
                             }
@@ -89,7 +88,24 @@ export class QuerySet {
                         if (this.skip_count > 0) {
                             this.skip_count--
                         } else {
-                            data.push(cursor.value)
+                            switch (ret_type) {
+                                case 'data':
+                                    data.push(cursor.value)
+                                    break
+                                case 'object':
+                                    let obj = new this.object_model.constructor()
+                                    for (let data_key in cursor.value) {
+                                        obj[data_key] = cursor.value[data_key]
+                                    }
+                                    data.push(obj)
+                                    break
+                                case 'key':
+                                    data.push(cursor.value[key_path_field])
+                                    break
+                                default:
+                                    data.push(cursor.value)
+                                    break
+                            }
                         }
                     }
                     if (this.limit_count >= 0 && data.length >= this.limit_count) {
@@ -110,6 +126,10 @@ export class QuerySet {
         })
     }
 
+    async all() {
+        return this.__all('data')
+    }
+
     async objs() {
         return new Promise(async (resolve, reject) => {
             if (this.object_model.db === null || this.object_model.db === undefined) {
@@ -125,13 +145,13 @@ export class QuerySet {
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    for (let k in this.filterOptions) {
+                    for (let k in this.whereOptions) {
                         if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.filterOptions[k]) {
+                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         } else {
-                            if (cursor.value[k] != this.filterOptions[k]) {
+                            if (cursor.value[k] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         }
@@ -193,13 +213,13 @@ export class QuerySet {
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    for (let k in this.filterOptions) {
+                    for (let k in this.whereOptions) {
                         if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.filterOptions[k]) {
+                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         } else {
-                            if (cursor.value[k] != this.filterOptions[k]) {
+                            if (cursor.value[k] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         }
@@ -258,13 +278,13 @@ export class QuerySet {
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    for (let k in this.filterOptions) {
+                    for (let k in this.whereOptions) {
                         if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.filterOptions[k]) {
+                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         } else {
-                            if (cursor.value[k] != this.filterOptions[k]) {
+                            if (cursor.value[k] != this.whereOptions[k]) {
                                 push_flag = false
                             }
                         }
