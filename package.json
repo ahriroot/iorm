@@ -1,29 +1,27 @@
 {
     "name": "iorm",
-    "version": "0.0.2",
-    "description": "ORM of indexedDB",
-    "main": "index.js",
-    "types": "iorm.d.ts",
+    "version": "0.0.5",
+    "description": "ORM of IndexedDB",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc"
     },
     "keywords": [
         "ORM",
-        "indexedDB",
-        "orm",
-        "orm-indexedDB",
+        "IndexedDB",
         "database"
     ],
     "author": "ahriknow",
     "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/ahricode/iorm/issues"
+    },
+    "homepage": "https://github.com/ahricode/iorm#readme",
     "devDependencies": {
         "typescript": "^4.7.4"
     },
     "files": [
-        "index.js",
-        "index.mjs",
-        "dist",
-        "iorm.d.ts"
+        "dist"
     ]
 }

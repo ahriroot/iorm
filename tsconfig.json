@@ -2,6 +2,8 @@
     "compilerOptions": {
         "baseUrl": "src",
         "allowJs": true,
+        "declaration": true,
+        "declarationMap": true,
         "target": "ES6", // 目标语言的版本
         "module": "es2015", // 指定生成代码的模板标准
         "noImplicitAny": false, // 允许隐式的 any 类型
