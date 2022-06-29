@@ -2,11 +2,11 @@
 
 export interface IORMConfigDatabase {
     db_name: string
-    db_version: number | null
+    db_version: number | null | undefined
 }
 
 export interface IORMConfigStore {
-    store_name: string | null
+    store_name: string | null | undefined
 }
 
 export interface IORMConfigSetting {
@@ -15,6 +15,6 @@ export interface IORMConfigSetting {
 
 export interface IORMConfig {
     db: IORMConfigDatabase
-    store?: IORMConfigStore
-    setting?: IORMConfigSetting
+    store?: IORMConfigStore | null | undefined
+    setting?: IORMConfigSetting | null | undefined
 }

@@ -1,9 +1,9 @@
-import KeyPathField from "./KeyPath.js"
-import InteagerField from "./Inteaget.js"
-import StringField from "./String.js"
-import BooleanField from "./Boolean.js"
-import ArrayField from "./Array.js"
-import ObjectField from "./Object.js"
+import KeyPathField from "./KeyPath"
+import InteagerField from "./Inteaget"
+import StringField from "./String"
+import BooleanField from "./Boolean"
+import ArrayField from "./Array"
+import ObjectField from "./Object"
 
 
 export {

@@ -1,5 +1,5 @@
 import { IKeyPathFieldGenerate, KeyPathProperty } from "../../types/index"
-import Field from "../base/field.js"
+import Field from "../base/field"
 
 
 class KeyPath extends Field {

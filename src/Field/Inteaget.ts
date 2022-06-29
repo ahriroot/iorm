@@ -1,5 +1,5 @@
 import { IFieldGenerate, FieldProperty } from "../../types/index"
-import Field from "../base/field.js"
+import Field from "../base/field"
 
 
 class Inteager extends Field {

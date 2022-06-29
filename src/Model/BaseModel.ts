@@ -1,6 +1,6 @@
-import { DefaultKeyPath } from "../base/const.js"
+import { DefaultKeyPath } from "../base/const"
 import { IBaseModel, IORMConfig, IORMConfigSetting } from "../../types/index"
-import { QuerySet } from "./Query.js"
+import { QuerySet } from "./Query"
 
 /**
  * BaseModel
@@ -19,15 +19,17 @@ class BaseModel implements IBaseModel {
     protected key_path: string = DefaultKeyPath  // default KeyPath
     protected auto_increment: boolean = true  // default KeyPath
 
-    constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: null }, setting: { default_type: 'data' } }) {
+    constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: '' }, setting: { default_type: 'data' } }) {
         this.store_name = this.toLowerLine(this.constructor.name)  // store name, default class name lowercase underscore
 
         this.db_name = config.db.db_name  // database name
         this.db_version = config.db.db_version  // database version
-        if (config.store.store_name !== null) {
+        if (config.store && config.store.store_name !== '') {
             this.store_name = config.store.store_name  // custome store name
         }
-        this.setting = config.setting  // setting
+        if (config.setting) {
+            this.setting = config.setting  // setting
+        }
         return new Proxy(this, {
             get: (target, prop) => {
                 // if (target[prop].hasOwnProperty('iorm_type') && target[prop].iorm_type === 'field') {
@@ -71,7 +73,7 @@ class BaseModel implements IBaseModel {
     }
 
     get_key_path_field() {
-        let key_path_field = null
+        let key_path_field: string | null = null
         Object.getOwnPropertyNames(this).forEach(key => {
             if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
                 if (this[key].type === 'key_path') {
@@ -94,7 +96,11 @@ class BaseModel implements IBaseModel {
                 let t = event.target as IDBRequest
                 let db = t.result
                 let auto_increment = true  // default KeyPath auto_increment
-                let index_dict = []  // index list
+                let index_dict: {
+                    field_name: string,
+                    index_name: string,
+                    options: { unique: boolean }
+                }[] = []  // index list
 
                 let key_path_has_defined: number = 0
                 Object.getOwnPropertyNames(this).forEach(key => {
