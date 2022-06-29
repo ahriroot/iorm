@@ -1,5 +1,5 @@
-import { IFieldGenerate, FieldProperty } from "../../types/index"
-import Field from "../base/field"
+import { IFieldGenerate, FieldProperty } from "../types/index"
+import Field from "../base/field.js"
 
 
 class Boolean extends Field {

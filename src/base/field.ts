@@ -1,4 +1,4 @@
-import { FieldProperty, IField } from "../../types/index"
+import { FieldProperty, IField } from "../types/index"
 
 
 /**

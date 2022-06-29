@@ -1,6 +1,6 @@
-import { DefaultKeyPath } from "../base/const"
-import { IBaseModel, IORMConfig, IORMConfigSetting } from "../../types/index"
-import { QuerySet } from "./Query"
+import { DefaultKeyPath } from "../base/const.js"
+import { IBaseModel, IORMConfig, IORMConfigSetting } from "../types/index"
+import { QuerySet } from "./Query.js"
 
 /**
  * BaseModel
