@@ -1,11 +1,11 @@
 import { DefaultKeyPath } from "../base/const.js"
-import { IBaseModel, IORMConfig, IORMConfigDatabase, IORMConfigSetting, IORMConfigStore } from "../types/index"
+import { IORMConfig, IORMConfigDatabase, IORMConfigSetting, IORMConfigStore } from "../types/index"
 import { QuerySet } from "./Query.js"
 
 /**
  * BaseModel
  */
-class BaseModel implements IBaseModel {
+class BaseModel {
     protected db_name: string = ''
     protected db_version: number = 0
 

@@ -5,7 +5,7 @@ import Field from "../base/field.js"
 class Boolean extends Field {
     private readonly js_type: string = 'boolean'
     private readonly type: string = 'boolean'
-    value: boolean
+    value: boolean = true
     constructor(property: FieldProperty) {
         super(property)
         if (typeof property?.default != 'boolean') {

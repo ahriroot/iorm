@@ -108,3 +108,36 @@ users.forEach(user => {
 const res = User.find().filter({ username: 'admin', activate: true }).delete()
 console.log(res)  // 返回被删除的数据
 ```
+
+## 内置类型
+
+```typescript
+export interface FieldProperty {
+    verbose_name?: string
+    nullable?: boolean
+    default?: any[]
+    unique?: boolean
+    index?: string | false
+}
+```
+
+| 字段名       | 类型            | 必须 | 默认值 | 描述                               |
+| ------------ | --------------- | ---- | ------ | ---------------------------------- |
+| verbose_name | string          | N    | ''     | 字段描述                           |
+| nullable     | boolean         | N    | false  | 是否允许为空                       |
+| default      | any             | N    |        | 默认值，根据字段类型有不同的默认值 |
+| unique       | boolean         | N    | false  | 唯一                               |
+| index        | string 或 false | N    | false  | string: 索引名；false: 不创建索引  |
+
+
+## 字段类型
+
+```typescript
+KeyPathField(property: FieldProperty): Field
+
+InteagerField(property: FieldProperty): Field  // default: 0
+StringField(property: FieldProperty): Field  // default: ''
+BooleanField(property: FieldProperty): Field  // default: true
+ArrayField(property: FieldProperty): Field  // default: []
+ObjectField(property: FieldProperty): Field  // default: {}
+```

@@ -5,7 +5,7 @@ import Field from "../base/field.js"
 class String extends Field {
     private readonly js_type: string = 'string'
     private readonly type: string = 'string'
-    value: string
+    value: string = ''
     constructor(property: FieldProperty) {
         super(property)
         if (typeof property?.default != 'string') {

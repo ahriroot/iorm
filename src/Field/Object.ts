@@ -5,7 +5,7 @@ import Field from "../base/field.js"
 class Object extends Field {
     private readonly js_type: string = 'object'
     private readonly type: string = 'array'
-    value: boolean
+    value: object = {}
     constructor(property: FieldProperty) {
         super(property)
         if (typeof property?.default != 'object') {
