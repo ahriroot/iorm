@@ -1,3 +1,4 @@
+import { IORMConfigDatabase, IORMConfigStore } from "../types/index"
 
 export class QuerySet {
     private readonly object_model: any
@@ -45,6 +46,31 @@ export class QuerySet {
         }
         this.limit_count = limit
         return this
+    }
+
+    db(val: string | IORMConfigDatabase | null | undefined = null) {
+        if (val === null || val === undefined) {
+            return this.object_model.db_name
+        } else if (typeof val === 'string') {
+            this.object_model.db_name = val
+            return this
+        } else {
+            this.object_model.db_name = val.db_name
+            this.object_model.db_version = val.db_version
+            return this
+        }
+    }
+
+    store(val: string | IORMConfigStore | null | undefined = null) {
+        if (val === null || val === undefined) {
+            return this.object_model.store_name
+        } else if (typeof val === 'string') {
+            this.object_model.store_name = val
+            return this
+        } else {
+            this.object_model.store_name = val.store_name
+            return this
+        }
     }
 
     async __all(ret_type: string = 'data') {

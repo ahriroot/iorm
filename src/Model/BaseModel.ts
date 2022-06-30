@@ -1,5 +1,5 @@
 import { DefaultKeyPath } from "../base/const.js"
-import { IBaseModel, IORMConfig, IORMConfigSetting } from "../types/index"
+import { IBaseModel, IORMConfig, IORMConfigDatabase, IORMConfigSetting, IORMConfigStore } from "../types/index"
 import { QuerySet } from "./Query.js"
 
 /**
@@ -291,6 +291,16 @@ class BaseModel implements IBaseModel {
     static all() {
         let query = new QuerySet(new this())
         return query.all()
+    }
+
+    static db(val: string | IORMConfigDatabase | null | undefined = null) {
+        let query = new QuerySet(new this())
+        return query.db(val)
+    }
+
+    static store(val: string | IORMConfigStore | null | undefined = null) {
+        let query = new QuerySet(new this())
+        return query.store(val)
     }
 
     /**
