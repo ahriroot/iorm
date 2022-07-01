@@ -1,5 +1,9 @@
 [简体中文](./docs/zh_CN/README.md)|[English](./docs/en_US/README.md)
 
+> 正式版版本号将大于 "1.0.0"，当前 "0.0.7"
+> 
+> The official version number will be greater than '1.0.0', and the current version number is '0.0.7'.
+
 ## 介绍
 
 IORM 是 IndexedDB 工具包和对象关系映射器，它为应用程序开发人员提供了 IndexdbDB 的全部功能和灵活性。
@@ -129,6 +133,26 @@ export interface FieldProperty {
 | unique       | boolean         | N    | false  | 唯一                               |
 | index        | string 或 false | N    | false  | string: 索引名；false: 不创建索引  |
 
+```typescript
+export interface IORMConfigDatabase {
+    db_name: string
+    db_version: number | null | undefined
+}
+
+export interface IORMConfigStore {
+    store_name: string | null | undefined
+}
+
+export interface IORMConfigSetting {
+    default_type: 'data' | 'object' | 'key'
+}
+
+export interface IORMConfig {
+    db: IORMConfigDatabase
+    store?: IORMConfigStore | null | undefined
+    setting?: IORMConfigSetting | null | undefined
+}
+```
 
 ## 字段类型
 
@@ -140,4 +164,65 @@ StringField(property: FieldProperty): Field  // default: ''
 BooleanField(property: FieldProperty): Field  // default: true
 ArrayField(property: FieldProperty): Field  // default: []
 ObjectField(property: FieldProperty): Field  // default: {}
+```
+
+## Model 实例方法
+
+```typescript
+/**
+ * 保存数据，keypath 不存在则新建数据
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+save(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+
+/**
+ * 新建数据
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+insert(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+```
+
+## Model 类方法
+
+```typescript
+/**
+ * 新建数据
+ * data {object} 数据 (只取模型中定义的数据)
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+
+/**
+ * 查询数据
+ * @returns {QuerySet}
+ */
+find(): QuerySet
+find_many(): QuerySet
+
+/**
+ * 查询条件
+ * @returns {QuerySet}
+ */
+where(filter: object = {}): QuerySet
+
+/**
+ * 获取符合条件的所有数据
+ * @returns {Promise<any>}
+ */
+all(): Promise<any>
+
+/**
+ * 动态设置数据库名，null | undefined 获取数据库名
+ * @returns {QuerySet | string}
+ */
+db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | string
+
+/**
+ * 动态设置仓库名，null | undefined 获取仓库名
+ * @returns {QuerySet | string}
+ */
+store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
 ```

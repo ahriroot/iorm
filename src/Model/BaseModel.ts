@@ -277,18 +277,18 @@ class BaseModel {
         return object.insert(ret)
     }
 
-    static find() {
+    static find(): QuerySet {
         let query = new QuerySet(new this())
         return query
     }
     static find_many = BaseModel.find
 
-    static where(filter: object = {}) {
+    static where(filter: object = {}): QuerySet {
         let query = new QuerySet(new this())
         return query.where(filter)
     }
 
-    static all() {
+    static all(): Promise<any> {
         let query = new QuerySet(new this())
         return query.all()
     }
