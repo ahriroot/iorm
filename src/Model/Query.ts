@@ -6,6 +6,7 @@ export class QuerySet {
     private excludeOptions: any = {}
     private skip_count: number = -1
     private limit_count: number = -1
+    private order_by: object | null | undefined = null
     constructor(object: any) {
         this.object_model = object
         return new Proxy(this, {
@@ -48,6 +49,11 @@ export class QuerySet {
         return this
     }
 
+    order(order: object) {
+        this.order_by = order
+        return this
+    }
+
     db(val: string | IORMConfigDatabase | null | undefined = null) {
         if (val === null || val === undefined) {
             return this.object_model.db_name
@@ -81,7 +87,21 @@ export class QuerySet {
             let key_path_field = this.object_model.get_key_path_field()
             let key_path_name = this.object_model.key_path_name()
             let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readonly').objectStore(this.object_model.store_name)
-            let request = objectStore.openCursor()
+            let request
+            if (this.order_by != null && this.order_by != undefined) {
+                for (let key in this.order_by) {
+                    let order = 'next'
+                    if (typeof this.order_by[key] == 'number' && this.order_by[key] == -1) {
+                        order = 'prev'
+                    } else if (this.order_by[key] == 'prev') {
+                        order = 'prev'
+                    }
+                    request = objectStore.openCursor(IDBKeyRange.upperBound(key, true), order)
+                    break
+                }
+            } else {
+                request = objectStore.openCursor()
+            }
             let data: any = []
             request.onsuccess = (event) => {
                 let t = event.target as IDBRequest

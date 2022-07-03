@@ -293,6 +293,11 @@ class BaseModel {
         return query.all()
     }
 
+    static order(order: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.order(order)
+    }
+
     static db(val: string | IORMConfigDatabase | null | undefined = null) {
         let query = new QuerySet(new this())
         return query.db(val)
