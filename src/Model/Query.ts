@@ -7,6 +7,7 @@ export class QuerySet {
     private skip_count: number = -1
     private limit_count: number = -1
     private order_by: object | null | undefined = null
+    private filterOptions: object | null | undefined = null
     constructor(object: any) {
         this.object_model = object
         return new Proxy(this, {
@@ -51,6 +52,11 @@ export class QuerySet {
 
     order(order: object) {
         this.order_by = order
+        return this
+    }
+
+    filter(filter: object) {
+        this.filterOptions = filter
         return this
     }
 
@@ -136,7 +142,13 @@ export class QuerySet {
                         } else {
                             switch (ret_type) {
                                 case 'data':
-                                    data.push(cursor.value)
+                                    let tmp_data = {}
+                                    for (let k in cursor.value) {
+                                        if (this.filterOptions == null || this.filterOptions == undefined || this.filterOptions[k] == undefined || this.filterOptions[k] == 1) {
+                                            tmp_data[k] = cursor.value[k]
+                                        }
+                                    }
+                                    data.push(tmp_data)
                                     break
                                 case 'object':
                                     let obj = new this.object_model.constructor()

@@ -298,6 +298,11 @@ class BaseModel {
         return query.order(order)
     }
 
+    static filter(filter: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.filter(filter)
+    }
+
     static db(val: string | IORMConfigDatabase | null | undefined = null) {
         let query = new QuerySet(new this())
         return query.db(val)

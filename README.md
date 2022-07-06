@@ -1,8 +1,8 @@
 [简体中文](./docs/zh_CN/README.md)|[English](./docs/en_US/README.md)
 
-> 正式版版本号将大于 "1.0.0"，当前 "0.0.7"
+> 正式版版本号将大于 "1.0.0"，当前 "0.0.9"
 > 
-> The official version number will be greater than '1.0.0', and the current version number is '0.0.7'.
+> The official version number will be greater than '1.0.0', and the current version number is '0.0.9'.
 
 ## 介绍
 
