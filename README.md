@@ -209,6 +209,13 @@ find_many(): QuerySet
 where(filter: object = {}): QuerySet
 
 /**
+ * 排序，next | 1 正序； prev | -1 倒序
+ * 当前只支持一个排序字段
+ * @returns {QuerySet}
+ */
+order(order: object = {}): QuerySet
+
+/**
  * 获取符合条件的所有数据
  * @returns {Promise<any>}
  */
