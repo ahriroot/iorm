@@ -8,8 +8,12 @@ export class QuerySet {
     private limit_count: number = -1
     private order_by: object | null | undefined = null
     private filterOptions: object | null | undefined = null
+    key_path_field: string
+    key_path_name: string
     constructor(object: any) {
         this.object_model = object
+        this.key_path_field = this.object_model.get_key_path_field()
+        this.key_path_name = this.object_model.key_path_name()
         return new Proxy(this, {
             get: (target, prop) => {
                 return target[prop]
@@ -85,6 +89,52 @@ export class QuerySet {
         }
     }
 
+    __where_match(data: any, where: any) {
+        let push_flag = true
+        for (let k in where) {
+            let tmp_data_value = k == this.key_path_field ? data.value[this.key_path_name] : data.value[k]
+            if (tmp_data_value != where[k]) {
+                push_flag = false
+            }
+        }
+        return push_flag
+    }
+
+    __where_or(data: any, where: any): boolean {
+        for (let index = 0; index < where.length; index++) {
+            if (this.__where_match(data, where[index])) {
+                return true
+            }
+        }
+        return false
+    }
+
+    __where_and(data: any, where: any): boolean {
+        for (let index = 0; index < where.length; index++) {
+            if (!this.__where_match(data, where[index])) {
+                return false
+            }
+        }
+        return true
+    }
+
+    __where_and_exclude(data: any, where: any): boolean {
+        let push_flag = true
+        for (let k in where) {
+            switch (k) {
+                case '$or':
+                    push_flag = this.__where_or(data, where[k])
+                    break
+                case '$and':
+                    push_flag = this.__where_and(data, where[k])
+                    break
+                default:
+                    push_flag = this.__where_match(data, where)
+            }
+        }
+        return push_flag
+    }
+
     async __all(ret_type: string = 'data') {
         return new Promise(async (resolve, reject) => {
             if (this.object_model.db === null || this.object_model.db === undefined) {
@@ -114,17 +164,13 @@ export class QuerySet {
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    for (let k in this.whereOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-                            if (cursor.value[k] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        }
-                    }
+                    // for (let k in this.whereOptions) {
+                    //     let tmp_data_value = k == key_path_field ? cursor.value[key_path_name] : cursor.value[k]
+                    //     if (tmp_data_value != this.whereOptions[k]) {
+                    //         push_flag = false
+                    //     }
+                    // }
+                    push_flag = this.__where_and_exclude(cursor, this.whereOptions)
                     for (let k in this.excludeOptions) {
                         if (k == key_path_field) {
                             if (cursor.value[key_path_name] == this.excludeOptions[k]) {
