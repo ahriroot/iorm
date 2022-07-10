@@ -73,9 +73,9 @@ user.save()  // 主键重复则修改数据
     
 ```javascript
 const query = User.find()  // find 等价于 find_many
-query = query.filter({ activate: true })  // filter: 过滤条件
+query = query.where({ activate: true })  // filter: 过滤条件
 // OR
-const query = User.filter({ activate: true })  // 或直接使用 filter
+const query = User.where({ activate: true })  // 或直接使用 filter
 
 query = query.exclude({ username: 'admin' })  // exclude: 排除条件
 
@@ -93,13 +93,13 @@ console.log(query.get())
 #### 修改数据
     
 ```javascript
-const user = User.find().filter({ username: 'admin', activate: true }).obj() // obj|object: 获取一条数据实例
+const user = User.find().where({ username: 'admin', activate: true }).obj() // obj|object: 获取一条数据实例
 if (user) {
     query.username = 'admin2'
     query.save()
 }
 
-const users = User.find().filter({ username: 'admin', activate: true }).objs() // objs|objects: 获取多条数据实例
+const users = User.find().where({ username: 'admin', activate: true }).objs() // objs|objects: 获取多条数据实例
 users.forEach(user => {
     user.username = 'admin2'
     user.save()
@@ -109,7 +109,7 @@ users.forEach(user => {
 #### 删除数据
     
 ```javascript
-const res = User.find().filter({ username: 'admin', activate: true }).delete()
+const res = User.find().where({ username: 'admin', activate: true }).delete()
 console.log(res)  // 返回被删除的数据
 ```
 
