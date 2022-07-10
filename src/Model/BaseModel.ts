@@ -293,6 +293,37 @@ class BaseModel {
         return query.all()
     }
 
+    static get(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.get()
+    }
+
+    static obj(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.obj()
+    }
+
+    static object(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.obj()
+    }
+
+    static objs(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.obj()
+    }
+
+    static objects(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.objs()
+    }
+
+    static delete(): Promise<any> {
+        console.warn("There is no filter condition for deleting data");
+        let query = new QuerySet(new this())
+        return query.delete()
+    }
+
     static order(order: object): QuerySet {
         let query = new QuerySet(new this())
         return query.order(order)

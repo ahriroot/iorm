@@ -1,8 +1,8 @@
 [简体中文](./docs/zh_CN/README.md)|[English](./docs/en_US/README.md)
 
-> 正式版版本号将大于 "1.0.0"，当前 "0.0.9"
+> 正式版版本号将大于 "1.0.0"，当前 "0.0.10"
 > 
-> The official version number will be greater than '1.0.0', and the current version number is '0.0.9'.
+> The official version number will be greater than '1.0.0', and the current version number is '0.0.10'.
 
 ## 介绍
 
@@ -196,17 +196,28 @@ insert(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
 insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
 
 /**
- * 查询数据
- * @returns {QuerySet}
- */
-find(): QuerySet
-find_many(): QuerySet
-
-/**
  * 查询条件
  * @returns {QuerySet}
  */
 where(filter: object = {}): QuerySet
+
+/**
+ * 排除条件
+ * @returns {QuerySet}
+ */
+exclude(exclude: object): QuerySet
+
+/**
+ * 跳过数据条数
+ * @returns {QuerySet}
+ */
+skip(skip: number): QuerySet
+
+/**
+ * 查询数据条数
+ * @returns {QuerySet}
+ */
+limit(limit: number): QuerySet
 
 /**
  * 排序，next | 1 : 正序; prev | -1 : 倒序
@@ -226,6 +237,105 @@ filter(filter: object = null): QuerySet
  * @returns {Promise<any>}
  */
 all(): Promise<any>
+
+/**
+ * 获取一条数据
+ * @returns {Promise<any>}
+ */
+get(): Promise<any>
+
+/**
+ * 获取一条数据实例
+ * @returns {Promise<any>}
+ */
+obj(): Promise<any>
+object(): Promise<any>
+
+/**
+ * 获取多条数据实例
+ * @returns {Promise<any>}
+ */
+objs(): Promise<any>
+objects(): Promise<any>
+
+/**
+ * 动态设置数据库名，null | undefined 获取数据库名
+ * @returns {QuerySet | string}
+ */
+db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | string
+
+/**
+ * 动态设置仓库名，null | undefined 获取仓库名
+ * @returns {QuerySet | string}
+ */
+store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
+```
+
+## QuerySet 方法
+
+```typescript
+/**
+ * 查询条件
+ * @returns {QuerySet}
+ */
+where(filter: object = {}): QuerySet
+
+/**
+ * 排除条件
+ * @returns {QuerySet}
+ */
+exclude(exclude: object): QuerySet
+
+/**
+ * 跳过数据条数
+ * @returns {QuerySet}
+ */
+skip(skip: number): QuerySet
+
+/**
+ * 查询数据条数
+ * @returns {QuerySet}
+ */
+limit(limit: number): QuerySet
+
+/**
+ * 排序，next | 1 : 正序; prev | -1 : 倒序
+ * 当前只支持一个排序字段
+ * @returns {QuerySet}
+ */
+order(order: object = null): QuerySet
+
+/**
+ * 字段过滤 1: 过滤; 其他: 不过滤
+ * @returns {QuerySet}
+ */
+filter(filter: object = null): QuerySet
+
+/**
+ * 获取符合条件的所有数据
+ * @returns {Promise<any>}
+ */
+all(): Promise<any>
+
+/**
+ * 获取一条数据
+ * @returns {Promise<any>}
+ */
+get(): Promise<any>
+
+/**
+ * 获取一条数据实例
+ * @returns {Promise<any>}
+ */
+obj(): Promise<any>
+object(): Promise<any>
+
+/**
+ * 获取多条数据实例
+ * @returns {Promise<any>}
+ */
+objs(): Promise<any>
+objects(): Promise<any>
 
 /**
  * 动态设置数据库名，null | undefined 获取数据库名

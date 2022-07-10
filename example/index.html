@@ -184,8 +184,8 @@
                     }
                 }
                 const getAllUsers = async () => {
-                    let query = User.order({ age: -1 }).filter({ hobbies: -1 }).limit(20)
-                    users.value = await query.where({ '$and': [{ age: 1 }, { name: 5 }] }).all()
+                    let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
+                    users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
                     console.log('users:', users.value)
                 }
                 const handleNewUser = async () => {

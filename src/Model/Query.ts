@@ -89,18 +89,31 @@ export class QuerySet {
         }
     }
 
-    __where_match(data: any, where: any) {
+    /**
+     * 精准匹配查询
+     * @param data 行数据
+     * @param where 查询条件
+     * @returns 是否符合条件
+     */
+    private __where_match(data: any, where: any) {
         let push_flag = true
         for (let k in where) {
             let tmp_data_value = k == this.key_path_field ? data.value[this.key_path_name] : data.value[k]
+
             if (tmp_data_value != where[k]) {
-                push_flag = false
+                return false
             }
         }
         return push_flag
     }
 
-    __where_or(data: any, where: any): boolean {
+    /**
+     * or 查询
+     * @param data 行数据
+     * @param where 查询条件
+     * @returns 是否符合条件
+     */
+    private __where_or(data: any, where: any): boolean {
         for (let index = 0; index < where.length; index++) {
             if (this.__where_match(data, where[index])) {
                 return true
@@ -109,7 +122,13 @@ export class QuerySet {
         return false
     }
 
-    __where_and(data: any, where: any): boolean {
+    /**
+     * and 查询
+     * @param data 行数据
+     * @param where 查询条件
+     * @returns 是否符合条件
+     */
+    private __where_and(data: any, where: any): boolean {
         for (let index = 0; index < where.length; index++) {
             if (!this.__where_match(data, where[index])) {
                 return false
@@ -118,7 +137,13 @@ export class QuerySet {
         return true
     }
 
-    __where_and_exclude(data: any, where: any): boolean {
+    /**
+     * 查询或排除数据
+     * @param data 行数据
+     * @param where 查询条件 或 排除条件
+     * @returns 是否符合条件
+     */
+    private __where_and_exclude(data: any, where: any): boolean {
         let push_flag = true
         for (let k in where) {
             switch (k) {
@@ -135,21 +160,32 @@ export class QuerySet {
         return push_flag
     }
 
-    async __all(ret_type: string = 'data') {
+    /**
+     * 根据 filter 返回指定字段
+     * @param data 行数据
+     * @returns 固定条件数据
+     */
+    private __filter(data: object): object {
+        let tmp_data = {}
+        for (let k in data) {
+            if (this.filterOptions == null || this.filterOptions == undefined || this.filterOptions[k] == undefined || this.filterOptions[k] == 1) {
+                tmp_data[k] = data[k]
+            }
+        }
+        return tmp_data
+    }
+
+    private async __get(ret_type: string = 'data', only_one: boolean = false) {
         return new Promise(async (resolve, reject) => {
             if (this.object_model.db === null || this.object_model.db === undefined) {
                 this.object_model.db = await this.object_model.__open() as IDBDatabase
             }
-            let key_path_field = this.object_model.get_key_path_field()
-            let key_path_name = this.object_model.key_path_name()
-            let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readonly').objectStore(this.object_model.store_name)
+            let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readwrite').objectStore(this.object_model.store_name)
             let request
             if (this.order_by != null && this.order_by != undefined) {
                 for (let key in this.order_by) {
                     let order = 'next'
-                    if (typeof this.order_by[key] == 'number' && this.order_by[key] == -1) {
-                        order = 'prev'
-                    } else if (this.order_by[key] == 'prev') {
+                    if (this.order_by[key] == 'prev' || this.order_by[key] == -1) {
                         order = 'prev'
                     }
                     request = objectStore.openCursor(IDBKeyRange.upperBound(key, true), order)
@@ -164,23 +200,9 @@ export class QuerySet {
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    // for (let k in this.whereOptions) {
-                    //     let tmp_data_value = k == key_path_field ? cursor.value[key_path_name] : cursor.value[k]
-                    //     if (tmp_data_value != this.whereOptions[k]) {
-                    //         push_flag = false
-                    //     }
-                    // }
                     push_flag = this.__where_and_exclude(cursor, this.whereOptions)
-                    for (let k in this.excludeOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-                            if (cursor.value[k] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        }
+                    if (push_flag && this.excludeOptions != null && this.excludeOptions != undefined && Object.keys(this.excludeOptions).length > 0) {
+                        push_flag = !this.__where_and_exclude(cursor, this.excludeOptions)
                     }
                     if (push_flag) {
                         if (this.skip_count > 0) {
@@ -188,25 +210,35 @@ export class QuerySet {
                         } else {
                             switch (ret_type) {
                                 case 'data':
-                                    let tmp_data = {}
-                                    for (let k in cursor.value) {
-                                        if (this.filterOptions == null || this.filterOptions == undefined || this.filterOptions[k] == undefined || this.filterOptions[k] == 1) {
-                                            tmp_data[k] = cursor.value[k]
-                                        }
+                                    if (only_one) {
+                                        resolve(cursor.value)
+                                        return
                                     }
-                                    data.push(tmp_data)
+                                    data.push(this.__filter(cursor.value))
                                     break
                                 case 'object':
                                     let obj = new this.object_model.constructor()
                                     for (let data_key in cursor.value) {
                                         obj[data_key] = cursor.value[data_key]
                                     }
+                                    if (only_one) {
+                                        resolve(obj)
+                                        return
+                                    }
                                     data.push(obj)
                                     break
                                 case 'key':
-                                    data.push(cursor.value[key_path_field])
+                                    if (only_one) {
+                                        resolve(cursor.value[this.key_path_field])
+                                        return
+                                    }
+                                    data.push(cursor.value[this.key_path_field])
                                     break
                                 default:
+                                    if (only_one) {
+                                        resolve(cursor.value)
+                                        return
+                                    }
                                     data.push(cursor.value)
                                     break
                             }
@@ -231,140 +263,21 @@ export class QuerySet {
     }
 
     async all() {
-        return this.__all('data')
+        return this.__get('data')
+    }
+
+    async get() {
+        return this.__get('data', true)
     }
 
     async objs() {
-        return new Promise(async (resolve, reject) => {
-            if (this.object_model.db === null || this.object_model.db === undefined) {
-                this.object_model.db = await this.object_model.__open() as IDBDatabase
-            }
-            let key_path_field = this.object_model.get_key_path_field()
-            let key_path_name = this.object_model.key_path_name()
-            let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readonly').objectStore(this.object_model.store_name)
-            let request = objectStore.openCursor()
-            let data: any = []
-            request.onsuccess = (event) => {
-                let t = event.target as IDBRequest
-                let cursor = t.result
-                if (cursor) {
-                    let push_flag = true
-                    for (let k in this.whereOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-                            if (cursor.value[k] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        }
-                    }
-                    for (let k in this.excludeOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-
-                            if (cursor.value[k] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        }
-                    }
-                    if (push_flag) {
-                        if (this.skip_count > 0) {
-                            this.skip_count--
-                        } else {
-                            let obj = new this.object_model.constructor()
-                            for (let data_key in cursor.value) {
-                                obj[data_key] = cursor.value[data_key]
-                            }
-                            data.push(obj)
-                        }
-                    }
-                    if (this.limit_count >= 0 && data.length >= this.limit_count) {
-                        resolve(data)
-                        return
-                    } else {
-                        cursor.continue()
-                    }
-                } else {
-                    resolve(data)
-                    return
-                }
-            }
-
-            request.onerror = (event) => {
-                reject(event)
-            }
-        })
+        return this.__get('object')
     }
-
     objects = this.objs
 
     async obj() {
-        return new Promise(async (resolve, reject) => {
-            if (this.object_model.db === null || this.object_model.db === undefined) {
-                this.object_model.db = await this.object_model.__open() as IDBDatabase
-            }
-            let key_path_field = this.object_model.get_key_path_field()
-            let key_path_name = this.object_model.key_path_name()
-            let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readonly').objectStore(this.object_model.store_name)
-            let request = objectStore.openCursor()
-            request.onsuccess = (event) => {
-                let t = event.target as IDBRequest
-                let cursor = t.result
-                if (cursor) {
-                    let push_flag = true
-                    for (let k in this.whereOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-                            if (cursor.value[k] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        }
-                    }
-                    for (let k in this.excludeOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-
-                            if (cursor.value[k] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        }
-                    }
-                    if (push_flag) {
-                        if (this.skip_count > 0) {
-                            this.skip_count--
-                        } else {
-                            let obj = new this.object_model.constructor()
-                            for (let data_key in cursor.value) {
-                                obj[data_key] = cursor.value[data_key]
-                            }
-                            resolve(obj)
-                            return
-                        }
-                    }
-                    cursor.continue()
-                } else {
-                    resolve(null)
-                    return
-                }
-            }
-
-            request.onerror = (event) => {
-                reject(event)
-            }
-        })
+        return this.__get('object', true)
     }
-
     object = this.obj
 
     async delete() {
@@ -372,56 +285,41 @@ export class QuerySet {
             if (this.object_model.db === null || this.object_model.db === undefined) {
                 this.object_model.db = await this.object_model.__open() as IDBDatabase
             }
-            let key_path_field = this.object_model.get_key_path_field()
-            let key_path_name = this.object_model.key_path_name()
             let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readwrite').objectStore(this.object_model.store_name)
-            let request = objectStore.openCursor()
-            let data: any = []
+            let request
+            if (this.order_by != null && this.order_by != undefined) {
+                for (let key in this.order_by) {
+                    let order = 'next'
+                    if (this.order_by[key] == 'prev' || this.order_by[key] == -1) {
+                        order = 'prev'
+                    }
+                    request = objectStore.openCursor(IDBKeyRange.upperBound(key, true), order)
+                    break
+                }
+            } else {
+                request = objectStore.openCursor()
+            }
             request.onsuccess = (event) => {
                 let t = event.target as IDBRequest
                 let cursor = t.result
                 if (cursor) {
                     let push_flag = true
-                    for (let k in this.whereOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-                            if (cursor.value[k] != this.whereOptions[k]) {
-                                push_flag = false
-                            }
-                        }
-                    }
-                    for (let k in this.excludeOptions) {
-                        if (k == key_path_field) {
-                            if (cursor.value[key_path_name] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        } else {
-
-                            if (cursor.value[k] == this.excludeOptions[k]) {
-                                push_flag = false
-                            }
-                        }
+                    push_flag = this.__where_and_exclude(cursor, this.whereOptions)
+                    if (push_flag && this.excludeOptions != null && this.excludeOptions != undefined && Object.keys(this.excludeOptions).length > 0) {
+                        push_flag = !this.__where_and_exclude(cursor, this.excludeOptions)
                     }
                     if (push_flag) {
                         if (this.skip_count > 0) {
                             this.skip_count--
                         } else {
-                            data.push(cursor.value)
+                            resolve(cursor.value)
                             cursor.delete()
+                            return
                         }
                     }
-                    if (this.limit_count >= 0 && data.length >= this.limit_count) {
-                        resolve(data)
-                        return
-                    } else {
-                        cursor.continue()
-                    }
+                    cursor.continue()
                 } else {
-                    resolve(data)
-                    return
+                    reject('Con not open the cursor')
                 }
             }
 
