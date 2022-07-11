@@ -10,7 +10,7 @@ class BaseModel {
     protected db_version: number = 0
 
     protected store_name: string
-    protected db: IDBDatabase | null = null
+    protected db_object: IDBDatabase | null = null
 
     protected setting: IORMConfigSetting = {
         default_type: 'data'
@@ -163,8 +163,8 @@ class BaseModel {
      */
     async save(ret: 'id' | 'data' | 'object' = 'id') {
         return new Promise(async (resolve, reject) => {
-            if (this.db === null || this.db === undefined) {
-                this.db = await this.__open() as IDBDatabase
+            if (this.db_object === null || this.db_object === undefined) {
+                this.db_object = await this.__open() as IDBDatabase
             }
             let data = {}
             Object.getOwnPropertyNames(this).forEach(key => {
@@ -179,11 +179,11 @@ class BaseModel {
             let request
             if (data[this.key_path] === undefined || data[this.key_path] === null || data[this.key_path] === '') {
                 delete data[this.key_path]
-                request = this.db.transaction([this.store_name], 'readwrite')
+                request = this.db_object.transaction([this.store_name], 'readwrite')
                     .objectStore(this.store_name)
                     .add(data)
             } else {
-                request = this.db.transaction([this.store_name], 'readwrite')
+                request = this.db_object.transaction([this.store_name], 'readwrite')
                     .objectStore(this.store_name)
                     .put(data)
             }
@@ -220,8 +220,8 @@ class BaseModel {
      */
     async insert(ret: 'id' | 'data' | 'object' = 'id') {
         return new Promise(async (resolve, reject) => {
-            if (this.db === null || this.db === undefined) {
-                this.db = await this.__open() as IDBDatabase
+            if (this.db_object === null || this.db_object === undefined) {
+                this.db_object = await this.__open() as IDBDatabase
             }
             let data = {}
             Object.getOwnPropertyNames(this).forEach(key => {
@@ -238,7 +238,7 @@ class BaseModel {
                 delete data[this.key_path]
             }
 
-            let request = this.db.transaction([this.store_name], 'readwrite')
+            let request = this.db_object.transaction([this.store_name], 'readwrite')
                 .objectStore(this.store_name)
                 .add(data)
 

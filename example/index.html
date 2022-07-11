@@ -189,6 +189,12 @@
                     console.log('users:', users.value)
                 }
                 const handleNewUser = async () => {
+                    await User.db('test').insert({
+                        name: new_user.value.name,
+                        age: new_user.value.age,
+                        activate: new_user.value.activate,
+                        hobbies: new_user.value.hobbies.split(',')
+                    })
                     if (new_user.value.name == '') {
                         alert('请输入用户名')
                         return

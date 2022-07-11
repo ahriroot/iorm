@@ -1,8 +1,8 @@
 [简体中文](./docs/zh_CN/README.md)|[English](./docs/en_US/README.md)
 
-> 正式版版本号将大于 "1.0.0"，当前 "0.0.10"
+> 正式版版本号将大于 "1.0.0"，当前 "0.0.11"
 > 
-> The official version number will be greater than '1.0.0', and the current version number is '0.0.10'.
+> The official version number will be greater than '1.0.0', and the current version number is '0.0.11'.
 
 ## 介绍
 
@@ -271,7 +271,18 @@ db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | strin
 store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
 ```
 
-## QuerySet 方法
+## QuerySet 实例方法
+```typescript
+/**
+ * 新建数据
+ * data {object} 数据 (只取模型中定义的数据)
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+```
+
+## QuerySet 类方法
 
 ```typescript
 /**

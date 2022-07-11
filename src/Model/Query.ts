@@ -28,6 +28,16 @@ export class QuerySet {
         })
     }
 
+    async insert(data: any, ret: 'id' | 'data' | 'object' = 'id') {
+        let object = this.object_model
+        Object.getOwnPropertyNames(object).forEach(key => {
+            if (object[key]?.hasOwnProperty('iorm_type') && object[key].iorm_type === 'field') {
+                object[key] = data[key]
+            }
+        })
+        return object.insert(data, ret)
+    }
+
     where(where: object) {
         this.whereOptions = where
         return this
