@@ -8,10 +8,13 @@ class String extends Field {
     value: string = ''
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default != 'string') {
+        if (typeof property?.default === 'string') {
+            this.value = property.default
+        } else if (property.default === undefined) {
+            this.value = ''
+        } else {
             throw new Error('StringField default value must be string')
         }
-        this.value = property.default
     }
 }
 

@@ -2,21 +2,24 @@ import { IFieldGenerate, FieldProperty } from "../types/index"
 import Field from "../base/field.js"
 
 
-class Array extends Field {
+class ArrayF extends Field {
     private readonly js_type: string = 'object'
     private readonly type: string = 'array'
     value: any[] = []
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default != 'object') {
+        if (Array.isArray(property?.default)) {
+            this.value = property.default
+        } else if (property.default === undefined) {
+            this.value = []
+        } else {
             throw new Error('ArrayField default value must be array')
         }
-        this.value = property.default
     }
 }
 
 const ArrayField: IFieldGenerate = (property: FieldProperty) => {
-    let value = new Array(property)
+    let value = new ArrayF(property)
     return new Proxy(value, {
         get: function (target, prop) {
             return target[prop]

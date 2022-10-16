@@ -8,10 +8,13 @@ class Object extends Field {
     value: object = {}
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default != 'object') {
+        if (typeof property?.default === 'object') {
+            this.value = property.default
+        } else if (property.default === undefined) {
+            this.value = {}
+        } else {
             throw new Error('ObjectField default value must be object')
         }
-        this.value = property.default
     }
 }
 

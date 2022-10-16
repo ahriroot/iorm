@@ -11,7 +11,7 @@ class KeyPath extends Field {
         super(property)
         if (typeof property.key_path_name == 'string' && property.key_path_name.trim().length > 0) {
             // 暂时不支持设置 key_path_name
-            throw new Error("Custom 'key_path_name' is not supported for the time being in 'KeyPathField'")
+            throw new Error("Custom 'key_path_name' is not supported temporarily in 'KeyPathField'")
             this.key_path_name = property.key_path_name.trim()
         }
         if (typeof property.auto_increment == 'boolean') {

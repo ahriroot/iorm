@@ -8,10 +8,13 @@ class Inteager extends Field {
     value: number = 0
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default != 'number') {
+        if (typeof property?.default === 'number') {
+            this.value = property.default
+        } else if (property.default === undefined) {
+            this.value = 0
+        } else {
             throw new Error('InteagerField default value must be number')
         }
-        this.value = property.default
     }
 }
 
