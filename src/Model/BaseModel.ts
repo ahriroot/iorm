@@ -1,5 +1,5 @@
 import { DefaultKeyPath } from "../base/const.js"
-import { BaseModelProperty, IORMConfig, IORMConfigDatabase, IORMConfigStore } from "../types/index"
+import { IORMBaseModelProperty, IORMConfig, IORMConfigDatabase, IORMConfigStore } from "../types/index"
 import { QuerySet } from "./Query.js"
 
 
@@ -7,7 +7,7 @@ import { QuerySet } from "./Query.js"
  * BaseModel
  */
 class BaseModel {
-    protected __iorm_property: BaseModelProperty = {
+    protected __iorm_property: IORMBaseModelProperty = {
         db_name: '',
         db_version: 0,
 
@@ -18,7 +18,7 @@ class BaseModel {
             default_type: 'data'
         },
 
-        key_path: DefaultKeyPath,  // default KeyPath
+        key_path: DefaultKeyPath,  // default KeyPath is 'id'
         auto_increment: true,  // default KeyPath
     }
 

@@ -1,12 +1,8 @@
 [简体中文](./docs/zh_CN/README.md)|[English](./docs/en_US/README.md)
 
-> 正式版版本号将大于 "1.0.0"，当前 "0.0.12"
-> 
-> The official version number will be greater than '1.0.0', and the current version number is '0.0.12'.
-
 ## 介绍
 
-IORM 是 IndexedDB 工具包和对象关系映射器，它为应用程序开发人员提供了 IndexdbDB 的全部功能和灵活性。
+IORM 是 IndexedDB 工具包和对象关系映射器，提供了 IndexdbDB 的全部功能，具有灵活性。
 
 ## 安装
 

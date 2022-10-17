@@ -19,7 +19,7 @@ export interface IORMConfig {
     setting?: IORMConfigSetting | null | undefined
 }
 
-export interface BaseModelProperty {
+export interface IORMBaseModelProperty {
     db_name: string
     db_version: number
 
