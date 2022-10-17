@@ -10,6 +10,7 @@ class Field implements IField {
     nullable: boolean = false
     unique: boolean = false
     index: string | boolean = false
+    field_name: string | undefined = undefined
     constructor(property: FieldProperty) {
         if (property.hasOwnProperty('verbose_name') && typeof property.verbose_name == 'string') {
             this.verbose_name = property.verbose_name
@@ -22,6 +23,9 @@ class Field implements IField {
         }
         if (property.hasOwnProperty('index') && (typeof property.unique == 'string' || typeof property.unique == 'boolean')) {
             this.index = property.index
+        }
+        if (property.hasOwnProperty('field_name') && typeof property.field_name == 'string') {
+            this.field_name = property.field_name
         }
     }
 }

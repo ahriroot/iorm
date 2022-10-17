@@ -78,6 +78,7 @@
                     <th>age</th>
                     <th>activate</th>
                     <th>hobbies</th>
+                    <th>index</th>
                     <th>删除</th>
                 </tr>
             </thead>
@@ -105,6 +106,7 @@
                         </label>
                     </td>
                     <td>{{ user.hobbies }}</td>
+                    <td>{{ user.index }}</td>
                     <td>
                         <button v-show="edit == user.id" @click="handleSubmit">提交</button>
                         <button v-show="edit == user.id" @click="edit = -1">取消</button>
@@ -118,6 +120,7 @@
                     <td><input type="number" v-model="new_user.age" /></td>
                     <td><input type="checkbox" v-model="new_user.activate" /></td>
                     <td><input type="text" v-model="new_user.hobbies" /></td>
+                    <td></td>
                     <td>
                         <button @click="handleNewUser">新建</button>
                     </td>
@@ -142,11 +145,12 @@
             constructor() {
                 super({ store_name: 'user_store' })
             }
-            id = KeyPathField({ auto_increment: true })
-            age = InteagerField({ default: 3 })
+            id = KeyPathField({ key_path_name: '_id', auto_increment: true })
+            age = InteagerField({ default: 3, field_name: 'ageee' })
             name = StringField({ default: 'zhangsan', unique: false, index: 'name_index' })
             activate = BooleanField({ default: false, unique: false, index: 'activate_index' })
             hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
+            index = InteagerField({ default: Date.now, unique: false })
         }
 
         import { createApp, onMounted, ref } from './vue.esm-browser.prod.js'
@@ -185,16 +189,14 @@
                 }
                 const getAllUsers = async () => {
                     let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
-                    users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
+                    // users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
+                    users.value = await query.all()
                     console.log('users:', users.value)
+
+                    let obj = await query.objs()
+                    console.log('objs:', obj[0].age.value)
                 }
                 const handleNewUser = async () => {
-                    await User.db('test').insert({
-                        name: new_user.value.name,
-                        age: new_user.value.age,
-                        activate: new_user.value.activate,
-                        hobbies: new_user.value.hobbies.split(',')
-                    })
                     if (new_user.value.name == '') {
                         alert('请输入用户名')
                         return
@@ -204,7 +206,8 @@
                     u.name = new_user.value.name
                     u.activate = new_user.value.activate
                     u.hobbies = new_user.value.hobbies.split(',')
-                    await u.insert()
+                    let res = await u.insert()
+                    console.log(res)
                     new_user.value = {
                         id: '',
                         name: '',

@@ -18,3 +18,16 @@ export interface IORMConfig {
     store?: IORMConfigStore | null | undefined
     setting?: IORMConfigSetting | null | undefined
 }
+
+export interface BaseModelProperty {
+    db_name: string
+    db_version: number
+
+    store_name: string,
+    db_object: IDBDatabase | null
+
+    setting: IORMConfigSetting
+
+    key_path: string
+    auto_increment: boolean
+}

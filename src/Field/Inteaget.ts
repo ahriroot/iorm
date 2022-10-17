@@ -8,7 +8,7 @@ class Inteager extends Field {
     value: number = 0
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default === 'number') {
+        if (typeof property?.default === 'number' || typeof property?.default === 'function') {
             this.value = property.default
         } else if (property.default === undefined) {
             this.value = 0
@@ -25,7 +25,7 @@ const InteagerField: IFieldGenerate = (property: FieldProperty) => {
             return target[prop]
         },
         set: function (target, prop, value) {
-            target[prop] = value;
+            target[prop] = value
             return true
         }
     })

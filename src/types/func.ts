@@ -1,6 +1,6 @@
 // types/func.d.ts
 
-import { FieldProperty, KeyPathProperty } from "./field";
+import { FieldProperty, KeyPathProperty } from "./field"
 
 export interface IKeyPathFieldGenerate {
     (property: KeyPathProperty): any

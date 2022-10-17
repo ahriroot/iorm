@@ -8,10 +8,24 @@ export class QuerySet {
     private limit_count: number = -1
     private order_by: object | null | undefined = null
     private filterOptions: object | null | undefined = null
+    private mapping: { [x: string]: string } = {}
     key_path_field: string
     key_path_name: string
     constructor(object: any) {
         this.object_model = object
+        Object.getOwnPropertyNames(this.object_model).forEach(key => {
+            if (this.object_model[key]?.hasOwnProperty('iorm_type') && this.object_model[key].iorm_type === 'field') {
+                if (this.object_model[key].type === 'key_path') {
+                    this.mapping[this.object_model[key].key_path_name] = key
+                } else {
+                    if (this.object_model[key].field_name) {
+                        this.mapping[this.object_model[key].field_name] = key
+                    } else {
+                        this.mapping[key] = key
+                    }
+                }
+            }
+        })
         this.key_path_field = this.object_model.get_key_path_field()
         this.key_path_name = this.object_model.key_path_name()
         return new Proxy(this, {
@@ -76,25 +90,25 @@ export class QuerySet {
 
     db(val: string | IORMConfigDatabase | null | undefined = null) {
         if (val === null || val === undefined) {
-            return this.object_model.db_name
+            return this.object_model.__iorm_property.db_name
         } else if (typeof val === 'string') {
-            this.object_model.db_name = val
+            this.object_model.__iorm_property.db_name = val
             return this
         } else {
-            this.object_model.db_name = val.db_name
-            this.object_model.db_version = val.db_version
+            this.object_model.__iorm_property.db_name = val.db_name
+            this.object_model.__iorm_property.db_version = val.db_version
             return this
         }
     }
 
     store(val: string | IORMConfigStore | null | undefined = null) {
         if (val === null || val === undefined) {
-            return this.object_model.store_name
+            return this.object_model.__iorm_property.store_name
         } else if (typeof val === 'string') {
-            this.object_model.store_name = val
+            this.object_model.__iorm_property.store_name = val
             return this
         } else {
-            this.object_model.store_name = val.store_name
+            this.object_model.__iorm_property.store_name = val.store_name
             return this
         }
     }
@@ -179,7 +193,7 @@ export class QuerySet {
         let tmp_data = {}
         for (let k in data) {
             if (this.filterOptions == null || this.filterOptions == undefined || this.filterOptions[k] == undefined || this.filterOptions[k] == 1) {
-                tmp_data[k] = data[k]
+                tmp_data[this.mapping[k]] = data[k]
             }
         }
         return tmp_data
@@ -187,10 +201,10 @@ export class QuerySet {
 
     private async __get(ret_type: string = 'data', only_one: boolean = false) {
         return new Promise(async (resolve, reject) => {
-            if (this.object_model.db === null || this.object_model.db === undefined) {
-                this.object_model.db = await this.object_model.__open() as IDBDatabase
+            if (this.object_model.__iorm_property.db === null || this.object_model.__iorm_property.db === undefined) {
+                this.object_model.__iorm_property.db = await this.object_model.__open() as IDBDatabase
             }
-            let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readwrite').objectStore(this.object_model.store_name)
+            let objectStore = this.object_model.__iorm_property.db.transaction([this.object_model.__iorm_property.store_name], 'readwrite').objectStore(this.object_model.__iorm_property.store_name)
             let request
             if (this.order_by != null && this.order_by != undefined) {
                 for (let key in this.order_by) {
@@ -218,18 +232,19 @@ export class QuerySet {
                         if (this.skip_count > 0) {
                             this.skip_count--
                         } else {
+                            let res_filter = this.__filter(cursor.value)
                             switch (ret_type) {
                                 case 'data':
                                     if (only_one) {
                                         resolve(cursor.value)
                                         return
                                     }
-                                    data.push(this.__filter(cursor.value))
+                                    data.push(res_filter)
                                     break
                                 case 'object':
                                     let obj = new this.object_model.constructor()
-                                    for (let data_key in cursor.value) {
-                                        obj[data_key] = cursor.value[data_key]
+                                    for (let data_key in res_filter) {
+                                        obj[data_key] = res_filter[data_key]
                                     }
                                     if (only_one) {
                                         resolve(obj)
@@ -239,17 +254,17 @@ export class QuerySet {
                                     break
                                 case 'key':
                                     if (only_one) {
-                                        resolve(cursor.value[this.key_path_field])
+                                        resolve(res_filter[this.key_path_field])
                                         return
                                     }
-                                    data.push(cursor.value[this.key_path_field])
+                                    data.push(res_filter[this.key_path_field])
                                     break
                                 default:
                                     if (only_one) {
-                                        resolve(cursor.value)
+                                        resolve(res_filter)
                                         return
                                     }
-                                    data.push(cursor.value)
+                                    data.push(res_filter)
                                     break
                             }
                         }
@@ -292,10 +307,10 @@ export class QuerySet {
 
     async delete() {
         return new Promise(async (resolve, reject) => {
-            if (this.object_model.db === null || this.object_model.db === undefined) {
-                this.object_model.db = await this.object_model.__open() as IDBDatabase
+            if (this.object_model.__iorm_property.db === null || this.object_model.__iorm_property.db === undefined) {
+                this.object_model.__iorm_property.db = await this.object_model.__open() as IDBDatabase
             }
-            let objectStore = this.object_model.db.transaction([this.object_model.store_name], 'readwrite').objectStore(this.object_model.store_name)
+            let objectStore = this.object_model.__iorm_property.db.transaction([this.object_model.__iorm_property.store_name], 'readwrite').objectStore(this.object_model.__iorm_property.store_name)
             let request
             if (this.order_by != null && this.order_by != undefined) {
                 for (let key in this.order_by) {

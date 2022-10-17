@@ -12,6 +12,7 @@ export interface FieldProperty {
     default?: any
     unique?: boolean
     index?: string | boolean
+    field_name?: string | undefined
 }
 
 export interface IField {

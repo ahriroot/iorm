@@ -1,34 +1,37 @@
 import { DefaultKeyPath } from "../base/const.js"
-import { IORMConfig, IORMConfigDatabase, IORMConfigSetting, IORMConfigStore } from "../types/index"
+import { BaseModelProperty, IORMConfig, IORMConfigDatabase, IORMConfigStore } from "../types/index"
 import { QuerySet } from "./Query.js"
+
 
 /**
  * BaseModel
  */
 class BaseModel {
-    protected db_name: string = ''
-    protected db_version: number = 0
+    protected __iorm_property: BaseModelProperty = {
+        db_name: '',
+        db_version: 0,
 
-    protected store_name: string
-    protected db_object: IDBDatabase | null = null
+        store_name: '',
+        db_object: null,
 
-    protected setting: IORMConfigSetting = {
-        default_type: 'data'
+        setting: {
+            default_type: 'data'
+        },
+
+        key_path: DefaultKeyPath,  // default KeyPath
+        auto_increment: true,  // default KeyPath
     }
 
-    protected key_path: string = DefaultKeyPath  // default KeyPath
-    protected auto_increment: boolean = true  // default KeyPath
-
     constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: '' }, setting: { default_type: 'data' } }) {
-        this.store_name = this.toLowerLine(this.constructor.name)  // store name, default class name lowercase underscore
+        this.__iorm_property.store_name = this.toLowerLine(this.constructor.name)  // store name, default class name lowercase underscore
 
-        this.db_name = config.db.db_name  // database name
-        this.db_version = config.db.db_version  // database version
+        this.__iorm_property.db_name = config.db.db_name  // database name
+        this.__iorm_property.db_version = config.db.db_version  // database version
         if (config.store && config.store.store_name !== '') {
-            this.store_name = config.store.store_name  // custome store name
+            this.__iorm_property.store_name = config.store.store_name  // custome store name
         }
         if (config.setting) {
-            this.setting = config.setting  // setting
+            this.__iorm_property.setting = config.setting  // setting
         }
         return new Proxy(this, {
             get: (target, prop) => {
@@ -65,11 +68,11 @@ class BaseModel {
         Object.getOwnPropertyNames(this).forEach(key => {
             if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
                 if (this[key].type === 'key_path') {
-                    this.key_path = this[key].key_path_name
+                    this.__iorm_property.key_path = this[key].key_path_name
                 }
             }
         })
-        return this.key_path
+        return this.__iorm_property.key_path
     }
 
     get_key_path_field() {
@@ -91,7 +94,7 @@ class BaseModel {
     __open() {
         return new Promise((resolve, reject) => {
             let indexedDB = window.indexedDB
-            let request = indexedDB.open(this.db_name, this.db_version)
+            let request = indexedDB.open(this.__iorm_property.db_name, this.__iorm_property.db_version)
             request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
                 let t = event.target as IDBRequest
                 let db = t.result
@@ -110,8 +113,8 @@ class BaseModel {
                         && this[key]?.hasOwnProperty('type') && this[key].type === 'key_path'
                     ) {
                         key_path_has_defined++
-                        this.key_path = this[key].key_path_name
-                        this.auto_increment = this[key].auto_increment
+                        this.__iorm_property.key_path = this[key].key_path_name
+                        this.__iorm_property.auto_increment = this[key].auto_increment
                     }
 
                     // save index into index_dict
@@ -132,9 +135,9 @@ class BaseModel {
                 }
 
                 // create store
-                let objStore = db.createObjectStore(this.store_name, {
-                    keyPath: this.key_path,
-                    autoIncrement: this.auto_increment
+                let objStore = db.createObjectStore(this.__iorm_property.store_name, {
+                    keyPath: this.__iorm_property.key_path,
+                    autoIncrement: this.__iorm_property.auto_increment
                 })
 
                 // create index
@@ -163,8 +166,8 @@ class BaseModel {
      */
     async save(ret: 'id' | 'data' | 'object' = 'id') {
         return new Promise(async (resolve, reject) => {
-            if (this.db_object === null || this.db_object === undefined) {
-                this.db_object = await this.__open() as IDBDatabase
+            if (this.__iorm_property.db_object === null || this.__iorm_property.db_object === undefined) {
+                this.__iorm_property.db_object = await this.__open() as IDBDatabase
             }
             let data = {}
             Object.getOwnPropertyNames(this).forEach(key => {
@@ -172,19 +175,27 @@ class BaseModel {
                     if (this[key].type === 'key_path') {
                         data[this[key].key_path_name] = this[key].value
                     } else {
-                        data[key] = this[key].value
+                        let k = key
+                        if (this[key].field_name) {
+                            k = this[key].field_name
+                        }
+                        if (typeof this[key].value == "function") {
+                            data[k] = this[key].value()
+                        } else {
+                            data[k] = this[key].value
+                        }
                     }
                 }
             })
             let request
-            if (data[this.key_path] === undefined || data[this.key_path] === null || data[this.key_path] === '') {
-                delete data[this.key_path]
-                request = this.db_object.transaction([this.store_name], 'readwrite')
-                    .objectStore(this.store_name)
+            if (data[this.__iorm_property.key_path] === undefined || data[this.__iorm_property.key_path] === null || data[this.__iorm_property.key_path] === '') {
+                delete data[this.__iorm_property.key_path]
+                request = this.__iorm_property.db_object.transaction([this.__iorm_property.store_name], 'readwrite')
+                    .objectStore(this.__iorm_property.store_name)
                     .add(data)
             } else {
-                request = this.db_object.transaction([this.store_name], 'readwrite')
-                    .objectStore(this.store_name)
+                request = this.__iorm_property.db_object.transaction([this.__iorm_property.store_name], 'readwrite')
+                    .objectStore(this.__iorm_property.store_name)
                     .put(data)
             }
 
@@ -220,31 +231,40 @@ class BaseModel {
      */
     async insert(ret: 'id' | 'data' | 'object' = 'id') {
         return new Promise(async (resolve, reject) => {
-            if (this.db_object === null || this.db_object === undefined) {
-                this.db_object = await this.__open() as IDBDatabase
+            if (this.__iorm_property.db_object === null || this.__iorm_property.db_object === undefined) {
+                this.__iorm_property.db_object = await this.__open() as IDBDatabase
             }
             let data = {}
+            console.log(this)
             Object.getOwnPropertyNames(this).forEach(key => {
                 if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
                     if (this[key].type === 'key_path') {
-                        this.key_path = this[key].key_path_name
-                        data[this.key_path] = this[key].value
+                        this.__iorm_property.key_path = this[key].key_path_name
+                        data[this.__iorm_property.key_path] = this[key].value
                     } else {
-                        data[key] = this[key].value
+                        let k = key
+                        if (this[key].field_name) {
+                            k = this[key].field_name
+                        }
+                        if (typeof this[key].value == "function") {
+                            data[k] = this[key].value()
+                        } else {
+                            data[k] = this[key].value
+                        }
                     }
                 }
             })
-            if (data[this.key_path] === undefined || data[this.key_path] === null || data[this.key_path] === '') {
-                delete data[this.key_path]
+            if (data[this.__iorm_property.key_path] === undefined || data[this.__iorm_property.key_path] === null || data[this.__iorm_property.key_path] === '') {
+                delete data[this.__iorm_property.key_path]
             }
 
-            let request = this.db_object.transaction([this.store_name], 'readwrite')
-                .objectStore(this.store_name)
+            let request = this.__iorm_property.db_object.transaction([this.__iorm_property.store_name], 'readwrite')
+                .objectStore(this.__iorm_property.store_name)
                 .add(data)
 
             request.onsuccess = (event) => {
                 let t = event.target as IDBRequest
-                this[this.key_path] = t.result
+                this[this.__iorm_property.key_path] = t.result
                 switch (ret) {
                     case 'id':
                         resolve(t.result)
@@ -319,7 +339,7 @@ class BaseModel {
     }
 
     static delete(): Promise<any> {
-        console.warn("There is no filter condition for deleting data");
+        console.warn("There is no filter condition for deleting data")
         let query = new QuerySet(new this())
         return query.delete()
     }
