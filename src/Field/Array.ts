@@ -8,7 +8,7 @@ class ArrayF extends Field {
     value: any[] = []
     constructor(property: FieldProperty) {
         super(property)
-        if (Array.isArray(property?.default)) {
+        if (Array.isArray(property?.default) || typeof property?.default === 'function') {
             this.value = property.default
         } else if (property.default === undefined) {
             this.value = []

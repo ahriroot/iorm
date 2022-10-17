@@ -8,7 +8,7 @@ class String extends Field {
     value: string = ''
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default === 'string') {
+        if (typeof property?.default === 'string' || typeof property?.default === 'function') {
             this.value = property.default
         } else if (property.default === undefined) {
             this.value = ''

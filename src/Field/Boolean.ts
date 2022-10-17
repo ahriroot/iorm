@@ -8,7 +8,7 @@ class Boolean extends Field {
     value: boolean = true
     constructor(property: FieldProperty) {
         super(property)
-        if (typeof property?.default === 'boolean') {
+        if (typeof property?.default === 'boolean' || typeof property?.default === 'function') {
             this.value = property.default
         } else if (property.default === undefined) {
             this.value = true
