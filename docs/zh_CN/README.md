@@ -2,7 +2,7 @@
 
 ## 介绍
 
-IORM 是 IndexedDB 工具包和对象关系映射器，它为应用程序开发人员提供了 IndexdbDB 的全部功能和灵活性。
+IORM 是 IndexedDB 工具包和对象关系映射器，提供了 IndexdbDB 的全部功能，具有灵活性。
 
 ## 安装
 
@@ -69,9 +69,9 @@ user.save()  // 主键重复则修改数据
     
 ```javascript
 const query = User.find()  // find 等价于 find_many
-query = query.filter({ activate: true })  // filter: 过滤条件
+query = query.where({ activate: true })  // filter: 过滤条件
 // OR
-const query = User.filter({ activate: true })  // 或直接使用 filter
+const query = User.where({ activate: true })  // 或直接使用 filter
 
 query = query.exclude({ username: 'admin' })  // exclude: 排除条件
 
@@ -89,13 +89,13 @@ console.log(query.get())
 #### 修改数据
     
 ```javascript
-const user = User.find().filter({ username: 'admin', activate: true }).obj() // obj|object: 获取一条数据实例
+const user = User.find().where({ username: 'admin', activate: true }).obj() // obj|object: 获取一条数据实例
 if (user) {
     query.username = 'admin2'
     query.save()
 }
 
-const users = User.find().filter({ username: 'admin', activate: true }).objs() // objs|objects: 获取多条数据实例
+const users = User.find().where({ username: 'admin', activate: true }).objs() // objs|objects: 获取多条数据实例
 users.forEach(user => {
     user.username = 'admin2'
     user.save()
@@ -105,6 +105,255 @@ users.forEach(user => {
 #### 删除数据
     
 ```javascript
-const res = User.find().filter({ username: 'admin', activate: true }).delete()
+const res = User.find().where({ username: 'admin', activate: true }).delete()
 console.log(res)  // 返回被删除的数据
+```
+
+## 内置类型
+
+```typescript
+export interface FieldProperty {
+    verbose_name?: string
+    nullable?: boolean
+    default?: any[]
+    unique?: boolean
+    index?: string | false
+}
+```
+
+| 字段名       | 类型            | 必须 | 默认值    | 描述                               |
+| ------------ | --------------- | ---- | --------- | ---------------------------------- |
+| verbose_name | string          | N    | ''        | 字段描述                           |
+| nullable     | boolean         | N    | false     | 是否允许为空                       |
+| default      | any             | N    |           | 默认值，根据字段类型有不同的默认值 |
+| unique       | boolean         | N    | false     | 唯一                               |
+| index        | string 或 false | N    | false     | string: 索引名；false: 不创建索引  |
+| field_name   | string          | N    | undefined | indexeddb 中字段名映射             |
+
+```typescript
+export interface IORMConfigDatabase {
+    db_name: string
+    db_version: number | null | undefined
+}
+
+export interface IORMConfigStore {
+    store_name: string | null | undefined
+}
+
+export interface IORMConfigSetting {
+    default_type: 'data' | 'object' | 'key'
+}
+
+export interface IORMConfig {
+    db: IORMConfigDatabase
+    store?: IORMConfigStore | null | undefined
+    setting?: IORMConfigSetting | null | undefined
+}
+```
+
+## 字段类型
+
+```typescript
+KeyPathField(property: FieldProperty): Field
+
+InteagerField(property: FieldProperty): Field  // default: 0
+StringField(property: FieldProperty): Field  // default: ''
+BooleanField(property: FieldProperty): Field  // default: true
+ArrayField(property: FieldProperty): Field  // default: []
+ObjectField(property: FieldProperty): Field  // default: {}
+```
+
+## Model 实例方法
+
+```typescript
+/**
+ * 保存数据，keypath 不存在则新建数据
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+save(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+
+/**
+ * 新建数据
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+insert(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+```
+
+## Model 类方法
+
+```typescript
+/**
+ * 新建数据
+ * data {object} 数据 (只取模型中定义的数据)
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+
+/**
+ * 查询条件
+ * @returns {QuerySet}
+ */
+where(filter: object = {}): QuerySet
+
+/**
+ * 排除条件
+ * @returns {QuerySet}
+ */
+exclude(exclude: object): QuerySet
+
+/**
+ * 跳过数据条数
+ * @returns {QuerySet}
+ */
+skip(skip: number): QuerySet
+
+/**
+ * 查询数据条数
+ * @returns {QuerySet}
+ */
+limit(limit: number): QuerySet
+
+/**
+ * 排序，next | 1 : 正序; prev | -1 : 倒序
+ * 当前只支持一个排序字段
+ * @returns {QuerySet}
+ */
+order(order: object = null): QuerySet
+
+/**
+ * 字段过滤 1: 过滤; 其他: 不过滤
+ * @returns {QuerySet}
+ */
+filter(filter: object = null): QuerySet
+
+/**
+ * 获取符合条件的所有数据
+ * @returns {Promise<any>}
+ */
+all(): Promise<any>
+
+/**
+ * 获取一条数据
+ * @returns {Promise<any>}
+ */
+get(): Promise<any>
+
+/**
+ * 获取一条数据实例
+ * @returns {Promise<any>}
+ */
+obj(): Promise<any>
+object(): Promise<any>
+
+/**
+ * 获取多条数据实例
+ * @returns {Promise<any>}
+ */
+objs(): Promise<any>
+objects(): Promise<any>
+
+/**
+ * 动态设置数据库名，null | undefined 获取数据库名
+ * @returns {QuerySet | string}
+ */
+db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | string
+
+/**
+ * 动态设置仓库名，null | undefined 获取仓库名
+ * @returns {QuerySet | string}
+ */
+store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
+```
+
+## QuerySet 实例方法
+```typescript
+/**
+ * 新建数据
+ * data {object} 数据 (只取模型中定义的数据)
+ * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
+ * @returns {Promise<any>}
+ */
+insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+```
+
+## QuerySet 类方法
+
+```typescript
+/**
+ * 查询条件
+ * @returns {QuerySet}
+ */
+where(filter: object = {}): QuerySet
+
+/**
+ * 排除条件
+ * @returns {QuerySet}
+ */
+exclude(exclude: object): QuerySet
+
+/**
+ * 跳过数据条数
+ * @returns {QuerySet}
+ */
+skip(skip: number): QuerySet
+
+/**
+ * 查询数据条数
+ * @returns {QuerySet}
+ */
+limit(limit: number): QuerySet
+
+/**
+ * 排序，next | 1 : 正序; prev | -1 : 倒序
+ * 当前只支持一个排序字段
+ * @returns {QuerySet}
+ */
+order(order: object = null): QuerySet
+
+/**
+ * 字段过滤 1: 过滤; 其他: 不过滤
+ * @returns {QuerySet}
+ */
+filter(filter: object = null): QuerySet
+
+/**
+ * 获取符合条件的所有数据
+ * @returns {Promise<any>}
+ */
+all(): Promise<any>
+
+/**
+ * 获取一条数据
+ * @returns {Promise<any>}
+ */
+get(): Promise<any>
+
+/**
+ * 获取一条数据实例
+ * @returns {Promise<any>}
+ */
+obj(): Promise<any>
+object(): Promise<any>
+
+/**
+ * 获取多条数据实例
+ * @returns {Promise<any>}
+ */
+objs(): Promise<any>
+objects(): Promise<any>
+
+/**
+ * 动态设置数据库名，null | undefined 获取数据库名
+ * @returns {QuerySet | string}
+ */
+db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | string
+
+/**
+ * 动态设置仓库名，null | undefined 获取仓库名
+ * @returns {QuerySet | string}
+ */
+store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
 ```
