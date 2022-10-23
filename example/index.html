@@ -129,21 +129,21 @@
         </table>
     </div>
     <script type="module">
-        import { ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel } from '../dist/index.esm.js'
-        class DB extends BaseModel {
-            constructor(store = null) {
-                super({
-                    db: {
-                        db_name: 'dbname',
-                        db_version: 1
-                    },
-                    store: store
-                })
-            }
-        }
-        class User extends DB {
+        import { DB, ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel, init } from '../dist/index.js'
+
+        let db = new DB({
+            name: 'test',
+            version: 1,
+        })
+
+        class User extends BaseModel {
             constructor() {
-                super({ store_name: 'user_store' })
+                super({
+                    db: db,
+                    store: {
+                        name: 'user_store',
+                    },
+                })
             }
             id = KeyPathField({ key_path_name: '_id', auto_increment: true })
             age = InteagerField({ default: 3, field_name: 'ageee' })
@@ -151,6 +151,18 @@
             activate = BooleanField({ default: false, unique: false, index: 'activate_index' })
             hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
             index = InteagerField({ default: Date.now, unique: false })
+        }
+        class Test extends BaseModel {
+            constructor() {
+                super({
+                    db: db,
+                    store: {
+                        name: 'test',
+                    },
+                })
+            }
+            id = KeyPathField({ key_path_name: '_id', auto_increment: true })
+            test = StringField({ default: 'zhangsan', unique: false, index: 'name_index' })
         }
 
         import { createApp, onMounted, ref } from './vue.esm-browser.prod.js'
@@ -188,13 +200,17 @@
                     }
                 }
                 const getAllUsers = async () => {
-                    let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
-                    // users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
-                    users.value = await query.all()
-                    console.log('users:', users.value)
+                    let res = await init({
+                        models: [Test, User]
+                    })
+                    console.log('init:', res)
+                    // let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
+                    // // users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
+                    // users.value = await query.all()
+                    // console.log('users:', users.value)
 
-                    let obj = await query.objs()
-                    console.log('objs:', obj[0].age.value)
+                    // let obj = await query.objs()
+                    // console.log('objs:', obj[0]?.age.value)
                 }
                 const handleNewUser = async () => {
                     if (new_user.value.name == '') {

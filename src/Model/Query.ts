@@ -95,8 +95,8 @@ export class QuerySet {
             this.object_model.__iorm_property.db_name = val
             return this
         } else {
-            this.object_model.__iorm_property.db_name = val.db_name
-            this.object_model.__iorm_property.db_version = val.db_version
+            this.object_model.__iorm_property.db_name = val.name
+            this.object_model.__iorm_property.db_version = val.version
             return this
         }
     }
@@ -108,7 +108,7 @@ export class QuerySet {
             this.object_model.__iorm_property.store_name = val
             return this
         } else {
-            this.object_model.__iorm_property.store_name = val.store_name
+            this.object_model.__iorm_property.store_name = val.name
             return this
         }
     }

@@ -7,7 +7,7 @@ import { QuerySet } from "./Query.js"
  * BaseModel
  */
 class BaseModel {
-    protected __iorm_property: IORMBaseModelProperty = {
+    readonly __iorm_property: IORMBaseModelProperty = {
         db_name: '',
         db_version: 0,
 
@@ -22,13 +22,13 @@ class BaseModel {
         auto_increment: true,  // default KeyPath
     }
 
-    constructor(config: IORMConfig = { db: { db_name: '', db_version: 0 }, store: { store_name: '' }, setting: { default_type: 'data' } }) {
+    constructor(config: IORMConfig = { db: { name: '', version: 0 }, store: { name: '' }, setting: { default_type: 'data' } }) {
         this.__iorm_property.store_name = this.toLowerLine(this.constructor.name)  // store name, default class name lowercase underscore
 
-        this.__iorm_property.db_name = config.db.db_name  // database name
-        this.__iorm_property.db_version = config.db.db_version  // database version
-        if (config.store && config.store.store_name !== '') {
-            this.__iorm_property.store_name = config.store.store_name  // custome store name
+        this.__iorm_property.db_name = config.db.name  // database name
+        this.__iorm_property.db_version = config.db.version  // database version
+        if (config.store && config.store.name !== '') {
+            this.__iorm_property.store_name = config.store.name  // custome store name
         }
         if (config.setting) {
             this.__iorm_property.setting = config.setting  // setting
@@ -96,6 +96,7 @@ class BaseModel {
             let indexedDB = window.indexedDB
             let request = indexedDB.open(this.__iorm_property.db_name, this.__iorm_property.db_version)
             request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+                throw new Error(`Store '${this.__iorm_property.store_name}' not exist`)
                 let t = event.target as IDBRequest
                 let db = t.result
                 let auto_increment = true  // default KeyPath auto_increment
@@ -235,7 +236,6 @@ class BaseModel {
                 this.__iorm_property.db_object = await this.__open() as IDBDatabase
             }
             let data = {}
-            console.log(this)
             Object.getOwnPropertyNames(this).forEach(key => {
                 if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
                     if (this[key].type === 'key_path') {
