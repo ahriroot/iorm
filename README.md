@@ -20,6 +20,7 @@ yarn add iorm
 
 ```javascript
 import {
+    DB,
     BaseModel,
     ArrayField,
     KeyPathField,
@@ -28,21 +29,14 @@ import {
     BooleanField
 } from 'iorm'
 
-class DB extends BaseModel {
-    constructor(store = null) {  // store: 存储对象，默认类名小写下划线
-        super({
-            db: {
-                db_name: 'dbname',  // db_name: 数据库名
-                db_version: 1  // db_version: 数据库版本，默认为 1
-            },
-            store: store  // store: 存储对象，默认类名小写下划线
-        })
-    }
-}
+let db = new DB({
+    name: 'dbname',
+    version: 1,
+})
 
-class User extends DB {
+class User extends BaseModel {
     constructor() {
-        super({ store_name: 'user_store' })  // store_name: 存储对象名
+        super({ db: db, store: {name: 'user_store'} })  // store_name: 存储对象名
     }
     id = KeyPathField({ key_path_name: '_id', auto_increment: true })  // key_path_name: 主键名，默认字段名
     username = StringField({ verbose_name: '用户名', nullable: false, unique: true, index: 'name_index' })
@@ -50,6 +44,15 @@ class User extends DB {
     activate = BooleanField({ default: true, unique: false, index: 'activate_index' })
     hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
 }
+```
+
+#### 创建数据库
+
+```javascript
+let count = await init({
+    models: [User]
+})
+console.log(`${count} stores created or updated`)
 ```
 
 #### 添加数据

@@ -12,14 +12,14 @@ class BaseModel {
         db_version: 0,
 
         store_name: '',
-        db_object: null,
 
-        setting: {
-            default_type: 'data'
-        },
+        default_type: 'data',
 
         key_path: DefaultKeyPath,  // default KeyPath is 'id'
         auto_increment: true,  // default KeyPath
+
+
+        db_object: null,
     }
 
     constructor(config: IORMConfig = { db: { name: '', version: 0 }, store: { name: '' }, setting: { default_type: 'data' } }) {
@@ -31,7 +31,7 @@ class BaseModel {
             this.__iorm_property.store_name = config.store.name  // custome store name
         }
         if (config.setting) {
-            this.__iorm_property.setting = config.setting  // setting
+            this.__iorm_property.default_type = config.setting.default_type  // setting
         }
         return new Proxy(this, {
             get: (target, prop) => {
@@ -95,59 +95,8 @@ class BaseModel {
         return new Promise((resolve, reject) => {
             let indexedDB = window.indexedDB
             let request = indexedDB.open(this.__iorm_property.db_name, this.__iorm_property.db_version)
-            request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+            request.onupgradeneeded = (_: IDBVersionChangeEvent) => {
                 throw new Error(`Store '${this.__iorm_property.store_name}' not exist`)
-                let t = event.target as IDBRequest
-                let db = t.result
-                let auto_increment = true  // default KeyPath auto_increment
-                let index_dict: {
-                    field_name: string,
-                    index_name: string,
-                    options: { unique: boolean }
-                }[] = []  // index list
-
-                let key_path_has_defined: number = 0
-                Object.getOwnPropertyNames(this).forEach(key => {
-                    // create KeyPath
-                    if (
-                        this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field'
-                        && this[key]?.hasOwnProperty('type') && this[key].type === 'key_path'
-                    ) {
-                        key_path_has_defined++
-                        this.__iorm_property.key_path = this[key].key_path_name
-                        this.__iorm_property.auto_increment = this[key].auto_increment
-                    }
-
-                    // save index into index_dict
-                    if (this[key]?.hasOwnProperty('iorm_type') && this[key].iorm_type === 'field') {
-                        if (typeof this[key].index == 'string') {
-                            index_dict.push({
-                                field_name: key,
-                                index_name: this[key].index,
-                                options: { unique: this[key].unique }
-                            })
-                        }
-                    }
-                })
-                if (key_path_has_defined == 0) {
-                    reject(new Error('KeyPath is not defined'))
-                } else if (key_path_has_defined > 1) {
-                    reject(new Error('KeyPath is defined more than one'))
-                }
-
-                // create store
-                let objStore = db.createObjectStore(this.__iorm_property.store_name, {
-                    keyPath: this.__iorm_property.key_path,
-                    autoIncrement: this.__iorm_property.auto_increment
-                })
-
-                // create index
-                index_dict.forEach(index => {
-                    objStore.createIndex(index.field_name, index.index_name, index.options)
-                })
-                objStore.transaction.oncomplete = (_: any) => {
-                    resolve(db)
-                }
             }
             request.onsuccess = (event: Event) => {
                 let t = event.target as IDBRequest

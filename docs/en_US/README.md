@@ -1,359 +1,255 @@
-[简体中文](./docs/zh_CN/README.md)|[English](./docs/en_US/README.md)
+<!DOCTYPE html>
+<html lang="en">
 
-## 介绍
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IORM</title>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
 
-IORM 是 IndexedDB 工具包和对象关系映射器，提供了 IndexdbDB 的全部功能，具有灵活性。
+        html {
+            font-family: sans-serif;
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
 
-## 安装
+        body {
+            margin: 10px;
+        }
 
-```shell
-npm install iorm
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
 
-# OR
+        td,
+        th {
+            padding: 0;
+        }
 
-yarn add iorm
-```
+        .table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+            border: 1px solid #cbcbcb;
+        }
 
-## 快速开始
+        .table caption {
+            color: #000;
+            font: italic 85%/1 arial, sans-serif;
+            padding: 1em 0;
+            text-align: center;
+        }
 
-#### 创建数据库模型
+        .table td,
+        .table th {
+            border-left: 1px solid #cbcbcb;
+            border-width: 0 0 0 1px;
+            font-size: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: .5em 1em;
+        }
 
-```javascript
-import {
-    BaseModel,
-    ArrayField,
-    KeyPathField,
-    InteagerField,
-    StringField,
-    BooleanField
-} from 'iorm'
+        .table thead {
+            background-color: #e0e0e0;
+            color: #000;
+            text-align: left;
+            vertical-align: bottom;
+        }
 
-class DB extends BaseModel {
-    constructor(store = null) {  // store: 存储对象，默认类名小写下划线
-        super({
-            db: {
-                db_name: 'dbname',  // db_name: 数据库名
-                db_version: 1  // db_version: 数据库版本，默认为 1
-            },
-            store: store  // store: 存储对象，默认类名小写下划线
+        .table td {
+            background-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>age</th>
+                    <th>activate</th>
+                    <th>hobbies</th>
+                    <th>index</th>
+                    <th>删除</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(user, index) in users">
+                    <td>
+                        <span>{{ user.id }}</span>
+                    </td>
+                    <td>
+                        <input v-show="edit == user.id" type="text" v-model="swap.name" />
+                        <span v-show="edit != user.id">{{ user.name }}</span>
+                    </td>
+                    <td>
+                        <input v-show="edit == user.id" type="text" v-model="swap.age" />
+                        <span v-show="edit != user.id">{{ user.age }}</span>
+                    </td>
+                    <td>
+                        <label>
+                            <input v-show="edit == user.id" type="checkbox" v-model="swap.activate" />
+                            <span v-show="edit == user.id">{{ swap.activate }}</span>
+                        </label>
+                        <label>
+                            <input v-show="edit != user.id" type="checkbox" disabled v-model="user.activate" />
+                            <span v-show="edit != user.id">{{ user.activate }}</span>
+                        </label>
+                    </td>
+                    <td>{{ user.hobbies }}</td>
+                    <td>{{ user.index }}</td>
+                    <td>
+                        <button v-show="edit == user.id" @click="handleSubmit">提交</button>
+                        <button v-show="edit == user.id" @click="edit = -1">取消</button>
+                        <button v-show="edit != user.id" @click="handleEdit(user)">修改</button>
+                        <button v-show="edit != user.id" @click="handleDeleteUser(user.id)">删除</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Auto Generate</td>
+                    <td><input type="text" v-model="new_user.name" /></td>
+                    <td><input type="number" v-model="new_user.age" /></td>
+                    <td><input type="checkbox" v-model="new_user.activate" /></td>
+                    <td><input type="text" v-model="new_user.hobbies" /></td>
+                    <td></td>
+                    <td>
+                        <button @click="handleNewUser">新建</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="module">
+        import { DB, ArrayField, KeyPathField, InteagerField, StringField, BooleanField, BaseModel, init } from '../dist/index.js'
+
+        let db = new DB({
+            name: 'test',
+            version: 1,
         })
-    }
-}
 
-class User extends DB {
-    constructor() {
-        super({ store_name: 'user_store' })  // store_name: 存储对象名
-    }
-    id = KeyPathField({ key_path_name: '_id', auto_increment: true })  // key_path_name: 主键名，默认字段名
-    username = StringField({ verbose_name: '用户名', nullable: false, unique: true, index: 'name_index' })
-    password = StringField({ verbose_name: '密码', nullable: false, unique: false, index: 'name_index' })
-    activate = BooleanField({ default: true, unique: false, index: 'activate_index' })
-    hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
-}
-```
+        class User extends BaseModel {
+            constructor() {
+                super({
+                    db: db,
+                    store: {
+                        name: 'user_store',
+                    },
+                })
+            }
+            id = KeyPathField({ key_path_name: '_id', auto_increment: true })
+            age = InteagerField({ default: 3, field_name: 'ageee' })
+            name = StringField({ default: 'zhangsan', unique: false, index: 'name_index' })
+            activate = BooleanField({ default: false, unique: false, index: 'activate_index' })
+            hobbies = ArrayField({ default: ['football', 'basketball'], unique: false, index: 'hobbies_index' })
+            index = InteagerField({ default: Date.now, unique: false })
+        }
+        class Test extends BaseModel {
+            constructor() {
+                super({
+                    db: db,
+                    store: {
+                        name: 'test',
+                    },
+                })
+            }
+            id = KeyPathField({ key_path_name: '_id', auto_increment: true })
+            test = StringField({ default: 'zhangsan', unique: false, index: 'name_index' })
+        }
 
-#### 添加数据
+        import { createApp, onMounted, ref } from './vue.esm-browser.prod.js'
+        const app = createApp({
+            setup() {
+                const users = ref([])
+                const edit = ref(-1)
+                const swap = ref({})
+                const new_user = ref({
+                    id: '',
+                    name: '',
+                    age: 18,
+                    activate: true,
+                    hobbies: 'football,basketball'
+                })
+                const handleDeleteUser = async (id) => {
+                    let res = await User.where({ id: id }).delete()
+                    console.log('Deleted:', res)
+                    await getAllUsers()
+                }
+                const handleEdit = (user) => {
+                    swap.value = { ...user }
+                    edit.value = user.id
+                }
+                const handleSubmit = async () => {
+                    let res = await User.where({ id: edit.value }).object()
+                    if (res) {
+                        res.name = swap.value.name
+                        res.age = swap.value.age
+                        res.activate = swap.value.activate
+                        res.hobbies = [...swap.value.hobbies]
+                        await res.save()
+                        await getAllUsers()
+                        edit.value = -1
+                    }
+                }
+                const getAllUsers = async () => {
+                    let res = await init({
+                        models: [Test, User]
+                    })
+                    console.log('init:', res)
+                    let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
+                    // users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
+                    users.value = await query.all()
+                    console.log('users:', users.value)
 
-```javascript
-const user = new User()
-user.username = 'admin'
-user.password = '123456'
-user.hobbies = ['football']
+                    let obj = await query.objs()
+                    console.log('objs:', obj[0]?.age.value)
+                }
+                const handleNewUser = async () => {
+                    if (new_user.value.name == '') {
+                        alert('请输入用户名')
+                        return
+                    }
+                    let u = new User()
+                    u.age = new_user.value.age
+                    u.name = new_user.value.name
+                    u.activate = new_user.value.activate
+                    u.hobbies = new_user.value.hobbies.split(',')
+                    let res = await u.insert()
+                    console.log(res)
+                    new_user.value = {
+                        id: '',
+                        name: '',
+                        age: 18,
+                        activate: true,
+                        hobbies: 'football,basketball'
+                    }
+                    await getAllUsers()
+                }
+                onMounted(async () => {
+                    await getAllUsers()
+                })
+                return {
+                    users,
+                    new_user,
+                    edit,
+                    swap,
+                    handleEdit,
+                    handleSubmit,
+                    handleDeleteUser,
+                    handleNewUser
+                }
+            }
+        })
+        app.mount("#app")
+    </script>
+</body>
 
-user.insert()  // 主键不能重复，auto_increment: true 自动生成
-// OR
-user.save()  // 主键重复则修改数据
-```
-
-#### 查询数据
-    
-```javascript
-const query = User.find()  // find 等价于 find_many
-query = query.where({ activate: true })  // filter: 过滤条件
-// OR
-const query = User.where({ activate: true })  // 或直接使用 filter
-
-query = query.exclude({ username: 'admin' })  // exclude: 排除条件
-
-query = query.skip(10)  // 跳过 10 条数据
-query = query.limit(10)  // 查询 10 条数据
-
-console.log(query.all())
-```
-    
-```javascript
-const query = User.find_one({username: 'admin'})
-console.log(query.get())
-```
-
-#### 修改数据
-    
-```javascript
-const user = User.find().where({ username: 'admin', activate: true }).obj() // obj|object: 获取一条数据实例
-if (user) {
-    query.username = 'admin2'
-    query.save()
-}
-
-const users = User.find().where({ username: 'admin', activate: true }).objs() // objs|objects: 获取多条数据实例
-users.forEach(user => {
-    user.username = 'admin2'
-    user.save()
-})
-```
-
-#### 删除数据
-    
-```javascript
-const res = User.find().where({ username: 'admin', activate: true }).delete()
-console.log(res)  // 返回被删除的数据
-```
-
-## 内置类型
-
-```typescript
-export interface FieldProperty {
-    verbose_name?: string
-    nullable?: boolean
-    default?: any[]
-    unique?: boolean
-    index?: string | false
-}
-```
-
-| 字段名       | 类型            | 必须 | 默认值    | 描述                               |
-| ------------ | --------------- | ---- | --------- | ---------------------------------- |
-| verbose_name | string          | N    | ''        | 字段描述                           |
-| nullable     | boolean         | N    | false     | 是否允许为空                       |
-| default      | any             | N    |           | 默认值，根据字段类型有不同的默认值 |
-| unique       | boolean         | N    | false     | 唯一                               |
-| index        | string 或 false | N    | false     | string: 索引名；false: 不创建索引  |
-| field_name   | string          | N    | undefined | indexeddb 中字段名映射             |
-
-```typescript
-export interface IORMConfigDatabase {
-    db_name: string
-    db_version: number | null | undefined
-}
-
-export interface IORMConfigStore {
-    store_name: string | null | undefined
-}
-
-export interface IORMConfigSetting {
-    default_type: 'data' | 'object' | 'key'
-}
-
-export interface IORMConfig {
-    db: IORMConfigDatabase
-    store?: IORMConfigStore | null | undefined
-    setting?: IORMConfigSetting | null | undefined
-}
-```
-
-## 字段类型
-
-```typescript
-KeyPathField(property: FieldProperty): Field
-
-InteagerField(property: FieldProperty): Field  // default: 0
-StringField(property: FieldProperty): Field  // default: ''
-BooleanField(property: FieldProperty): Field  // default: true
-ArrayField(property: FieldProperty): Field  // default: []
-ObjectField(property: FieldProperty): Field  // default: {}
-```
-
-## Model 实例方法
-
-```typescript
-/**
- * 保存数据，keypath 不存在则新建数据
- * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
- * @returns {Promise<any>}
- */
-save(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
-
-/**
- * 新建数据
- * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
- * @returns {Promise<any>}
- */
-insert(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
-```
-
-## Model 类方法
-
-```typescript
-/**
- * 新建数据
- * data {object} 数据 (只取模型中定义的数据)
- * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
- * @returns {Promise<any>}
- */
-insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
-
-/**
- * 查询条件
- * @returns {QuerySet}
- */
-where(filter: object = {}): QuerySet
-
-/**
- * 排除条件
- * @returns {QuerySet}
- */
-exclude(exclude: object): QuerySet
-
-/**
- * 跳过数据条数
- * @returns {QuerySet}
- */
-skip(skip: number): QuerySet
-
-/**
- * 查询数据条数
- * @returns {QuerySet}
- */
-limit(limit: number): QuerySet
-
-/**
- * 排序，next | 1 : 正序; prev | -1 : 倒序
- * 当前只支持一个排序字段
- * @returns {QuerySet}
- */
-order(order: object = null): QuerySet
-
-/**
- * 字段过滤 1: 过滤; 其他: 不过滤
- * @returns {QuerySet}
- */
-filter(filter: object = null): QuerySet
-
-/**
- * 获取符合条件的所有数据
- * @returns {Promise<any>}
- */
-all(): Promise<any>
-
-/**
- * 获取一条数据
- * @returns {Promise<any>}
- */
-get(): Promise<any>
-
-/**
- * 获取一条数据实例
- * @returns {Promise<any>}
- */
-obj(): Promise<any>
-object(): Promise<any>
-
-/**
- * 获取多条数据实例
- * @returns {Promise<any>}
- */
-objs(): Promise<any>
-objects(): Promise<any>
-
-/**
- * 动态设置数据库名，null | undefined 获取数据库名
- * @returns {QuerySet | string}
- */
-db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | string
-
-/**
- * 动态设置仓库名，null | undefined 获取仓库名
- * @returns {QuerySet | string}
- */
-store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
-```
-
-## QuerySet 实例方法
-```typescript
-/**
- * 新建数据
- * data {object} 数据 (只取模型中定义的数据)
- * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
- * @returns {Promise<any>}
- */
-insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
-```
-
-## QuerySet 类方法
-
-```typescript
-/**
- * 查询条件
- * @returns {QuerySet}
- */
-where(filter: object = {}): QuerySet
-
-/**
- * 排除条件
- * @returns {QuerySet}
- */
-exclude(exclude: object): QuerySet
-
-/**
- * 跳过数据条数
- * @returns {QuerySet}
- */
-skip(skip: number): QuerySet
-
-/**
- * 查询数据条数
- * @returns {QuerySet}
- */
-limit(limit: number): QuerySet
-
-/**
- * 排序，next | 1 : 正序; prev | -1 : 倒序
- * 当前只支持一个排序字段
- * @returns {QuerySet}
- */
-order(order: object = null): QuerySet
-
-/**
- * 字段过滤 1: 过滤; 其他: 不过滤
- * @returns {QuerySet}
- */
-filter(filter: object = null): QuerySet
-
-/**
- * 获取符合条件的所有数据
- * @returns {Promise<any>}
- */
-all(): Promise<any>
-
-/**
- * 获取一条数据
- * @returns {Promise<any>}
- */
-get(): Promise<any>
-
-/**
- * 获取一条数据实例
- * @returns {Promise<any>}
- */
-obj(): Promise<any>
-object(): Promise<any>
-
-/**
- * 获取多条数据实例
- * @returns {Promise<any>}
- */
-objs(): Promise<any>
-objects(): Promise<any>
-
-/**
- * 动态设置数据库名，null | undefined 获取数据库名
- * @returns {QuerySet | string}
- */
-db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | string
-
-/**
- * 动态设置仓库名，null | undefined 获取仓库名
- * @returns {QuerySet | string}
- */
-store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
-```
+</html>

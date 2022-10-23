@@ -24,7 +24,7 @@ const StringField: IFieldGenerate = (property: FieldProperty) => {
             return target[prop]
         },
         set: function (target, prop, value) {
-            target[prop] = value;
+            target[prop] = value
             return true
         }
     })

@@ -26,8 +26,12 @@ export interface IORMBaseModelProperty {
     store_name: string,
     db_object: IDBDatabase | null
 
-    setting: IORMConfigSetting
+    default_type: string
 
     key_path: string
     auto_increment: boolean
+}
+
+export interface IORM {
+    models: any[]
 }

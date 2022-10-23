@@ -204,13 +204,13 @@
                         models: [Test, User]
                     })
                     console.log('init:', res)
-                    // let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
-                    // // users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
-                    // users.value = await query.all()
-                    // console.log('users:', users.value)
+                    let query = User.order({ age: -1 }).filter({ hobbies: 1 }).limit(20)
+                    // users.value = await query.where({ '$or': [{ age: 1 }, { age: 5 }] }).exclude({ age: 1 }).all()
+                    users.value = await query.all()
+                    console.log('users:', users.value)
 
-                    // let obj = await query.objs()
-                    // console.log('objs:', obj[0]?.age.value)
+                    let obj = await query.objs()
+                    console.log('objs:', obj[0]?.age.value)
                 }
                 const handleNewUser = async () => {
                     if (new_user.value.name == '') {

@@ -1,12 +1,5 @@
-import { IORMConfig } from "../types/config.js"
-import BaseModel from "./BaseModel.js"
-import DB from "./DB.js"
+import { IORM } from "types/index"
 
-
-interface IORM {
-    db: DB,
-    models: BaseModel[]
-}
 
 const init = async (options: IORM) => {
     let dbs = {}
@@ -50,17 +43,25 @@ const init = async (options: IORM) => {
         dbs[obj.__iorm_property.db_name].push(store)
     })
 
-    // 遍历所有的数据库
-    let count_finished = 0
+    let db_array = []
     for (let db_name in dbs) {
-        let stores = dbs[db_name]
-        stores.forEach(store => {
-            let indexedDB = window.indexedDB
-            let request = indexedDB.open(store.db_name, store.db_version || 1)
-            request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                let t = event.target as IDBRequest
-                let db = t.result
+        db_array.push({
+            name: db_name,
+            version: dbs[db_name][0].db_version,
+            stores: dbs[db_name]
+        })
+    }
+    let count_finished = 0
 
+    db_array.forEach(async (db_detail: any) => {
+        let indexedDB = window.indexedDB
+        let request = indexedDB.open(db_detail.name, db_detail.version || 1)
+
+        request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+            let t = event.target as IDBRequest
+            let db = t.result
+
+            db_detail.stores.forEach((store: any) => {
                 let objStore = db.createObjectStore(store.store_name, {
                     keyPath: store.key_path,
                     autoIncrement: store.auto_increment
@@ -72,16 +73,20 @@ const init = async (options: IORM) => {
                 objStore.transaction.oncomplete = (_: any) => {
                     count_finished++
                 }
-            }
-            request.onsuccess = (_: Event) => {
-            }
-            request.onerror = (event: Event) => {
-                let t = event.target as IDBRequest
-                // reject(t.error)
-                throw new Error(t.error?.message)
-            }
-        })
-    }
+            })
+        }
+
+        request.onsuccess = (_: Event) => {
+            // 
+        }
+
+        request.onerror = (event: Event) => {
+            let t = event.target as IDBRequest
+            // reject(t.error)
+            throw new Error(t.error?.message)
+        }
+    })
+
     return count_finished
 }
 
