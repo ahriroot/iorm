@@ -276,6 +276,10 @@ export class QuerySet {
                         cursor.continue()
                     }
                 } else {
+                    if (only_one) {
+                        resolve(null)
+                        return
+                    }
                     resolve(data)
                     return
                 }
