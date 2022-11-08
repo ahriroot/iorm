@@ -8,6 +8,7 @@
     "types": "dist/index.d.ts",
     "type": "module",
     "scripts": {
+        "dev": "microbundle watch",
         "build": "microbundle",
         "build:ts": "tsc"
     },

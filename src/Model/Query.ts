@@ -295,7 +295,7 @@ export class QuerySet {
         return this.__get('data')
     }
 
-    async get() {
+    async json() {
         return this.__get('data', true)
     }
 
@@ -309,7 +309,7 @@ export class QuerySet {
     }
     object = this.obj
 
-    async delete() {
+    async delete(ret: string = 'json') {
         return new Promise(async (resolve, reject) => {
             if (this.object_model.__iorm_property.db === null || this.object_model.__iorm_property.db === undefined) {
                 this.object_model.__iorm_property.db = await this.object_model.__open() as IDBDatabase
@@ -341,8 +341,16 @@ export class QuerySet {
                         if (this.skip_count > 0) {
                             this.skip_count--
                         } else {
-                            resolve(cursor.value)
+                            if (cursor === null) {
+                                throw new Error('record is null')
+                            }
+                            let res = cursor.value
                             cursor.delete()
+                            if (ret == 'json') {
+                                resolve(res)
+                                return
+                            }
+                            resolve(res[this.object_model.__iorm_property.key_path])
                             return
                         }
                     }

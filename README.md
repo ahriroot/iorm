@@ -86,7 +86,7 @@ console.log(query.all())
     
 ```javascript
 const query = User.find_one({username: 'admin'})
-console.log(query.get())
+console.log(query.json())
 ```
 
 #### 修改数据
@@ -242,7 +242,7 @@ all(): Promise<any>
  * 获取一条数据
  * @returns {Promise<any>}
  */
-get(): Promise<any>
+json(): Promise<any>
 
 /**
  * 获取一条数据实例
@@ -332,7 +332,7 @@ all(): Promise<any>
  * 获取一条数据
  * @returns {Promise<any>}
  */
-get(): Promise<any>
+json(): Promise<any>
 
 /**
  * 获取一条数据实例

@@ -262,9 +262,9 @@ class BaseModel {
         return query.all()
     }
 
-    static get(): Promise<any> {
+    static json(): Promise<any> {
         let query = new QuerySet(new this())
-        return query.get()
+        return query.json()
     }
 
     static obj(): Promise<any> {
@@ -314,22 +314,50 @@ class BaseModel {
     }
 
     /**
+     * Get the json data of the object
+     * @returns json data of the object
+     */
+    json() {
+        let query = new QuerySet(this)
+        return query.json()
+    }
+
+    /**
+     * Get the [json data] of all [object]
+     * @returns [json data] of all [object]
+     */
+    all() {
+        let query = new QuerySet(this)
+        return query.all()
+    }
+
+    /**
      * Get property value
      * @param name The name of the field
      * @returns value of the field
      */
     get(name: string) {
-        let value = undefined
-        Object.getOwnPropertyNames(this).forEach(key => {
-            if (key == name) {
-                value = this[key].value
-            }
+        let has = Object.getOwnPropertyNames(this).some(key => {
+            return this[key]?.iorm_type === 'field' && key === name
         })
+        if (has) {
+            return this[name].value
+        }
+        throw new Error(`The field ${name} does not exist`)
         // value 不允许为 undefined
         // if(value === undefined) {
         //     throw new Error(`IORM: ${name} is not defined`)
         // }
-        return value
+    }
+
+    /**
+     * Delete and return the primary key of deleted data
+     * @param ret Type of return value, default: json (pk, json)
+     * @returns the primary key value
+     */
+    delete(ret: string = 'json'): Promise<any> {
+        let query = new QuerySet(this)
+        return query.delete(ret)
     }
 }
 
