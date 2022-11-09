@@ -252,9 +252,34 @@ class BaseModel {
     }
     static find_many = BaseModel.find
 
-    static where(filter: object = {}): QuerySet {
+    static where(where: object): QuerySet {
         let query = new QuerySet(new this())
-        return query.where(filter)
+        return query.where(where)
+    }
+
+    static exclude(exclude: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.exclude(exclude)
+    }
+
+    static skip(skip: number): QuerySet {
+        let query = new QuerySet(new this())
+        return query.skip(skip)
+    }
+
+    static limit(limit: number): QuerySet {
+        let query = new QuerySet(new this())
+        return query.limit(limit)
+    }
+
+    static order(order: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.order(order)
+    }
+
+    static filter(filter: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.filter(filter)
     }
 
     static all(): Promise<any> {
@@ -291,16 +316,6 @@ class BaseModel {
         console.warn("There is no filter condition for deleting data")
         let query = new QuerySet(new this())
         return query.delete()
-    }
-
-    static order(order: object): QuerySet {
-        let query = new QuerySet(new this())
-        return query.order(order)
-    }
-
-    static filter(filter: object): QuerySet {
-        let query = new QuerySet(new this())
-        return query.filter(filter)
     }
 
     static db(val: string | IORMConfigDatabase | null | undefined = null) {

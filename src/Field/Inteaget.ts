@@ -13,7 +13,11 @@ class Inteager extends Field {
         } else if (property.default === undefined) {
             this.value = 0
         } else {
-            throw new Error('InteagerField default value must be number')
+            if (this.nullable === true && property.default === null) {
+                this.value = null
+            } else {
+                throw new Error('InteagerField default value must be number')
+            }
         }
     }
 }

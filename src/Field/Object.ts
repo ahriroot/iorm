@@ -13,7 +13,11 @@ class Object extends Field {
         } else if (property.default === undefined) {
             this.value = {}
         } else {
-            throw new Error('ObjectField default value must be object')
+            if (this.nullable === true && property.default === null) {
+                this.value = null
+            } else {
+                throw new Error('ObjectField default value must be object')
+            }
         }
     }
 }

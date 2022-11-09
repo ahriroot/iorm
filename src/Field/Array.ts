@@ -13,7 +13,11 @@ class ArrayF extends Field {
         } else if (property.default === undefined) {
             this.value = []
         } else {
-            throw new Error('ArrayField default value must be array')
+            if (this.nullable === true && property.default === null) {
+                this.value = null
+            } else {
+                throw new Error('ArrayField default value must be array')
+            }
         }
     }
 }

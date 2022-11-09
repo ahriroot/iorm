@@ -13,7 +13,11 @@ class Boolean extends Field {
         } else if (property.default === undefined) {
             this.value = true
         } else {
-            throw new Error('BooleanField default value must be boolean')
+            if (this.nullable === true && property.default === null) {
+                this.value = null
+            } else {
+                throw new Error('BooleanField default value must be boolean')
+            }
         }
     }
 }
