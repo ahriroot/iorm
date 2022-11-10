@@ -170,6 +170,25 @@ ObjectField(property: FieldProperty): Field  // default: {}
 
 ```typescript
 /**
+ * 获取该对象的 json 数据
+ * @returns {Promise<any>}
+ */
+json(): Promise<any>
+
+/**
+ * 获取该对象数组的所有 json 数据
+ * @returns {Promise<any[]>}
+ */
+all(): Promise<any[]>
+
+/**
+ * 获取字段值
+ * name 字段名
+ * @returns {Promise<any>}
+ */
+get(name: string): Promise<any>
+
+/**
  * 保存数据，keypath 不存在则新建数据
  * ret {'id' | 'data' | 'object'} [default: 'id'] 返回数据类型，keypath|json|object
  * @returns {Promise<any>}
@@ -194,6 +213,13 @@ insert(ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
  * @returns {Promise<any>}
  */
 insert(data: object, ret: 'id' | 'data' | 'object' = 'id'): Promise<any>
+
+/**
+ * 返回 QuerySet
+ * @returns {QuerySet}
+ */
+find(): QuerySet
+find_many(): QuerySet
 
 /**
  * 查询条件
@@ -257,6 +283,12 @@ object(): Promise<any>
  */
 objs(): Promise<any>
 objects(): Promise<any>
+
+/**
+ * 删除数据
+ * @returns {Promise<any>}
+ */
+delete(): Promise<any>
 
 /**
  * 动态设置数据库名，null | undefined 获取数据库名

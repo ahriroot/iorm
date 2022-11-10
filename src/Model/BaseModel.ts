@@ -109,6 +109,127 @@ class BaseModel {
         })
     }
 
+    static async insert(data: any, ret: 'id' | 'data' | 'object' = 'id') {
+        let object = new this()
+        Object.getOwnPropertyNames(object).forEach(key => {
+            if (object[key]?.hasOwnProperty('iorm_type') && object[key].iorm_type === 'field') {
+                object[key] = data[key]
+            }
+        })
+        return object.insert(ret)
+    }
+
+    static find(): QuerySet {
+        let query = new QuerySet(new this())
+        return query
+    }
+    static find_many = BaseModel.find
+
+    static where(where: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.where(where)
+    }
+
+    static exclude(exclude: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.exclude(exclude)
+    }
+
+    static skip(skip: number): QuerySet {
+        let query = new QuerySet(new this())
+        return query.skip(skip)
+    }
+
+    static limit(limit: number): QuerySet {
+        let query = new QuerySet(new this())
+        return query.limit(limit)
+    }
+
+    static order(order: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.order(order)
+    }
+
+    static filter(filter: object): QuerySet {
+        let query = new QuerySet(new this())
+        return query.filter(filter)
+    }
+
+    static all(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.all()
+    }
+
+    static json(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.json()
+    }
+
+    static obj(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.obj()
+    }
+    static object = BaseModel.obj
+
+    static objs(): Promise<any> {
+        let query = new QuerySet(new this())
+        return query.obj()
+    }
+    static objects = BaseModel.objs
+
+    static delete(): Promise<any> {
+        console.warn("There is no filter condition for deleting data")
+        let query = new QuerySet(new this())
+        return query.delete()
+    }
+
+    static db(val: string | IORMConfigDatabase | null | undefined = null) {
+        let query = new QuerySet(new this())
+        return query.db(val)
+    }
+
+    static store(val: string | IORMConfigStore | null | undefined = null) {
+        let query = new QuerySet(new this())
+        return query.store(val)
+    }
+
+    /**
+     * Get the json data of the object
+     * @returns json data of the object
+     */
+    async json() {
+        let query = new QuerySet(this)
+        return query.json()
+    }
+
+    /**
+     * Get the [json data] of all [object]
+     * @returns [json data] of all [object]
+     */
+    async all() {
+        let query = new QuerySet(this)
+        return query.all()
+    }
+
+    /**
+     * Get property value
+     * @param name The name of the field
+     * @returns value of the field
+     */
+    async get(name: string) {
+        let has = Object.getOwnPropertyNames(this).some(key => {
+            return this[key]?.iorm_type === 'field' && key === name
+        })
+        if (has) {
+            return this[name].value
+        }
+        throw new Error(`The field ${name} does not exist`)
+        // value 不允许为 undefined
+        // if(value === undefined) {
+        //     throw new Error(`IORM: ${name} is not defined`)
+        // }
+    }
+
     /**
      * Save data to database and return the primary id
      * @param ret Return type
@@ -234,145 +355,6 @@ class BaseModel {
                 reject(t.error)
             }
         })
-    }
-
-    static async insert(data: any, ret: 'id' | 'data' | 'object' = 'id') {
-        let object = new this()
-        Object.getOwnPropertyNames(object).forEach(key => {
-            if (object[key]?.hasOwnProperty('iorm_type') && object[key].iorm_type === 'field') {
-                object[key] = data[key]
-            }
-        })
-        return object.insert(ret)
-    }
-
-    static find(): QuerySet {
-        let query = new QuerySet(new this())
-        return query
-    }
-    static find_many = BaseModel.find
-
-    static where(where: object): QuerySet {
-        let query = new QuerySet(new this())
-        return query.where(where)
-    }
-
-    static exclude(exclude: object): QuerySet {
-        let query = new QuerySet(new this())
-        return query.exclude(exclude)
-    }
-
-    static skip(skip: number): QuerySet {
-        let query = new QuerySet(new this())
-        return query.skip(skip)
-    }
-
-    static limit(limit: number): QuerySet {
-        let query = new QuerySet(new this())
-        return query.limit(limit)
-    }
-
-    static order(order: object): QuerySet {
-        let query = new QuerySet(new this())
-        return query.order(order)
-    }
-
-    static filter(filter: object): QuerySet {
-        let query = new QuerySet(new this())
-        return query.filter(filter)
-    }
-
-    static all(): Promise<any> {
-        let query = new QuerySet(new this())
-        return query.all()
-    }
-
-    static json(): Promise<any> {
-        let query = new QuerySet(new this())
-        return query.json()
-    }
-
-    static obj(): Promise<any> {
-        let query = new QuerySet(new this())
-        return query.obj()
-    }
-
-    static object(): Promise<any> {
-        let query = new QuerySet(new this())
-        return query.obj()
-    }
-
-    static objs(): Promise<any> {
-        let query = new QuerySet(new this())
-        return query.obj()
-    }
-
-    static objects(): Promise<any> {
-        let query = new QuerySet(new this())
-        return query.objs()
-    }
-
-    static delete(): Promise<any> {
-        console.warn("There is no filter condition for deleting data")
-        let query = new QuerySet(new this())
-        return query.delete()
-    }
-
-    static db(val: string | IORMConfigDatabase | null | undefined = null) {
-        let query = new QuerySet(new this())
-        return query.db(val)
-    }
-
-    static store(val: string | IORMConfigStore | null | undefined = null) {
-        let query = new QuerySet(new this())
-        return query.store(val)
-    }
-
-    /**
-     * Get the json data of the object
-     * @returns json data of the object
-     */
-    json() {
-        let query = new QuerySet(this)
-        return query.json()
-    }
-
-    /**
-     * Get the [json data] of all [object]
-     * @returns [json data] of all [object]
-     */
-    all() {
-        let query = new QuerySet(this)
-        return query.all()
-    }
-
-    /**
-     * Get property value
-     * @param name The name of the field
-     * @returns value of the field
-     */
-    get(name: string) {
-        let has = Object.getOwnPropertyNames(this).some(key => {
-            return this[key]?.iorm_type === 'field' && key === name
-        })
-        if (has) {
-            return this[name].value
-        }
-        throw new Error(`The field ${name} does not exist`)
-        // value 不允许为 undefined
-        // if(value === undefined) {
-        //     throw new Error(`IORM: ${name} is not defined`)
-        // }
-    }
-
-    /**
-     * Delete and return the primary key of deleted data
-     * @param ret Type of return value, default: json (pk, json)
-     * @returns the primary key value
-     */
-    delete(ret: string = 'json'): Promise<any> {
-        let query = new QuerySet(this)
-        return query.delete(ret)
     }
 }
 
