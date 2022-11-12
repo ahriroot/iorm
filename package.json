@@ -1,6 +1,6 @@
 {
     "name": "iorm",
-    "version": "0.0.17",
+    "version": "0.1.0",
     "description": "ORM of IndexedDB",
     "main": "dist/index.mjs",
     "module": "dist/index.mjs",
