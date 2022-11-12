@@ -392,3 +392,36 @@ db(val: string | IORMConfigDatabase | null | undefined = null): QuerySet | strin
  */
 store(val: string | IORMConfigStore | null | undefined = null): QuerySet | string
 ```
+
+## Storage
+
+#### Init
+
+```typescript
+import { Store } from 'iorm'
+
+let store = new Store({})
+let store = Store.init({})
+```
+
+#### Set
+
+```typescript
+store.set('key', 1)
+store.set('key', true)
+store.set('key', 'value')
+store.set('key', {'key': 'value'})
+store.set('key', ['value1', 'value2'])
+```
+
+#### Get
+
+```typescript
+let result = store.set('key')
+```
+
+#### Remove
+
+```typescript
+store.remove('key')
+```

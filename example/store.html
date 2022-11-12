@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IORM</title>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+
+        html {
+            font-family: sans-serif;
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <pre>{{users}}</pre>
+    </div>
+    <script type="module">
+        import { Store } from '../dist/index.mjs'
+        // let store = new Store({})
+        let store = Store.init({})
+
+        import { createApp, onMounted, ref } from './vue.esm-browser.prod.js'
+        const app = createApp({
+            setup() {
+                const users = ref([])
+                onMounted(async () => {
+                    store.set('users', [{
+                        name: '张三',
+                        age: 18
+                    }, {
+                        name: '李四',
+                        age: 19
+                    }, {
+                        name: '王五',
+                        age: 20
+                    }])
+                    users.value = await store.get('users')
+                    console.log(users.value)
+                    // await store.remove('users')
+                    // users.value = await store.get('users')
+                    // console.log(users.value)
+                })
+                return {
+                    users,
+                }
+            }
+        })
+        app.mount("#app")
+    </script>
+</body>
+
+</html>
